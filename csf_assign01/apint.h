@@ -1,3 +1,6 @@
+// aszewc1
+// vwen2
+
 /*
  * Arbitrary-precision integer data type
  */
@@ -17,7 +20,9 @@ extern "C" {
  * data[0] is bits 0..63, data[1] is bits 64..127, etc.
  */
 typedef struct {
-	/* TODO: add fields */
+	uint64_t len;	// length of data array
+	uint8_t sign;	// sign flag for int
+	uint64_t *data;	// data array for int
 } ApInt;
 
 /* Constructors and destructors */
