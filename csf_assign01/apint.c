@@ -13,9 +13,13 @@
 #include "apint.h"
 
 ApInt *apint_create_from_u64(uint64_t val) {
-	/* TODO: implement */
-	assert(0);
-	return NULL;
+  ApInt * new = malloc(sizeof(ApInt));
+  new->data = malloc(sizeof(uint64_t));
+  *(new->data) = val;
+  new->len = 1;
+  new->sign = 0;
+  assert(0);
+  return new;
 }
 
 ApInt *apint_create_from_hex(const char *hex) {
@@ -25,8 +29,9 @@ ApInt *apint_create_from_hex(const char *hex) {
 }
 
 void apint_destroy(ApInt *ap) {
-	/* TODO: implement */
-	assert(0);
+  free(ap->data);
+  free(ap);
+  assert(0);
 }
 
 int apint_is_zero(const ApInt *ap) {
