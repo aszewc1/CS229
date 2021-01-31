@@ -37,7 +37,7 @@ void apint_destroy(ApInt *ap) {
 
 int apint_is_zero(const ApInt *ap) {
   uint64_t * curr = ap->data;
-  for(int i = 0; i < ap->len; i++) {
+  for(int i = 0; (uint64_t) i < ap->len; i++) {
     if(*curr != 0UL) {
       return 0;
     }
@@ -47,7 +47,7 @@ int apint_is_zero(const ApInt *ap) {
 }
 
 int apint_is_negative(const ApInt *ap) {
-  return (int) sign;
+  return (int) ap->sign;
 }
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
@@ -62,8 +62,8 @@ int apint_highest_bit_set(const ApInt *ap) {
     return -1;
   }
 
-  int msb = (len - 1) * 64;
-  uint64_t n = ap->data[len-1];
+  int msb = (ap->len - 1) * 64;
+  uint64_t n = ap->data[ap->len-1];
   n = n / 2;
   while(n != 0UL) {
     n = n / 2;
@@ -102,12 +102,12 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
   int max_len = 0;
   if(sum->len > inc->len) {
     max_len = sum->len;
-    realloc(inc->data, max_len * sizeof(uint64_t));
+    inc->data = realloc(inc->data, max_len * sizeof(uint64_t));
     assert(inc->data);
   }
   else {
-    max_len = inc->len
-    realloc(sum->data, max_len * sizeof(uint64_t));
+    max_len = inc->len;
+    sum->data = realloc(sum->data, max_len * sizeof(uint64_t));
     assert(sum->data);
   }
   
@@ -130,7 +130,7 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
   }
 
   if (carry != 0) {
-    realloc(sum->data, (sum->len + 1) * sizeof(uint64_t));
+    sum->data = realloc(sum->data, (sum->len + 1) * sizeof(uint64_t));
     sum->data[sum->len] += carry;
     sum->len += 1;
   }
@@ -150,7 +150,7 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
     }
   }
 
-  if(apint_comare(b, a) > 0) {
+  if(apint_compare(b, a) > 0) {
     return apint_negate(apint_sub(b, a));
   }
 
@@ -160,18 +160,18 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
   int max_len = 0;
   if(sub->len > dec->len) {
     max_len = sub->len;
-    realloc(dec->data, max_len * sizeof(uint64_t));
+    dec-> data = realloc(dec->data, max_len * sizeof(uint64_t));
     assert(dec->data);
   }
   else {
     max_len = dec->len;
-    realloc(sub->data, max_len * sizeof(uint64_t));
+    sub->data = realloc(sub->data, max_len * sizeof(uint64_t));
     assert(sub->data);
   }
   
   uint64_t carry = 0;
-  uint64_t * s_dat = sum->data;
-  uint64_t * i_dat = inc->data;
+  uint64_t * s_dat = sub->data;
+  uint64_t * i_dat = dec->data;
 
   for(int i = 0; i < max_len; i++) {
     uint64_t count = 0;
@@ -192,7 +192,7 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
       sub->len -= 1;
     }
   }
-  realloc(sub->data, sub->len * sizeof(uint64_t));
+  sub->data = realloc(sub->data, sub->len * sizeof(uint64_t));
   apint_destroy(dec);
   return sub;
 }
@@ -203,29 +203,29 @@ int apint_compare(const ApInt *left, const ApInt *right) {
   int both_pos = !left_neg && !righ_neg;
   int both_neg = left_neg && righ_neg;
 
-  if(left_neg && !right_neg) {
+  if(left_neg && !righ_neg) {
     return -1;
   }
   else if(!left_neg && righ_neg) {
     return 1;
   }
 
-  if(left->len > right->len && both_pos |
-     left->len < right->len && both_neg) {
+  if((left->len > right->len) && both_pos |
+     (left->len < right->len) && both_neg) {
     return 1;
   }
-  else if(right->len > left->len && both_pos |
-	  right->len < left->len && both_neg) {
+  else if((right->len > left->len) && both_pos |
+	  (right->len < left->len) && both_neg) {
     return -1;
   }
 
   for(int i = left->len - 1; i >= 0; i--) {
-    if(left->data[i] > right->data[i] && both_pos |
-       left->data[i] < right->data[i] && both_neg) {
+    if((left->data[i] > right->data[i]) && both_pos |
+       (left->data[i] < right->data[i]) && both_neg) {
       return 1;
     }
-    if(right->data[i] > left->data[i] && both_pos |
-       right->data[i] < left->data[i] && both_neg) {
+    if((right->data[i] > left->data[i]) && both_pos |
+       (right->data[i] < left->data[i]) && both_neg) {
       return -1;
     }
   }
@@ -234,13 +234,13 @@ int apint_compare(const ApInt *left, const ApInt *right) {
 
 ApInt *apint_copy(const ApInt *ap) {
   ApInt * new = apint_create_from_u64(0UL);
-  realloc(new->data, ap->len * sizeof(uint64_t));
+  new->data = realloc(new->data, ap->len * sizeof(uint64_t));
   assert(new->data);
   new->len = ap->len;
   uint64_t * old = ap->data;
-  uint64_t * new = new->data;
-  for(int i = 0; i < ap->len; i++) {
-    *old = *new;
+  uint64_t * now = new->data;
+  for(int i = 0; (uint64_t) i < ap->len; i++) {
+    *old = *now;
   }
   return new;  
 }
