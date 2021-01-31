@@ -98,7 +98,37 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
       return sum;
     }
   }
+
+  //algo
+  int max_len = 0;
+  if (sum->len > inc->len) {
+    max_len = sum_len;
+    realloc(inc, max_len * sizeof(uint64_t));
+    assert(inc);
+  }
+  else {
+    realloc(sum, max_len * sizeof(uint64_t));
+    assert(sum);
+  }
   
+  int carry = 0;
+  int carry_count = 0;
+  uint64_t * s_dat = sum->data;
+  uint64_t * i_dat = inc->data;
+
+  for (int i = 0; i < max_len; i++) {
+    if (*s_dat + carry < *s_dat) {
+      carry_count++;
+    }
+    *s_dat += carry;
+    if (*s_dat + *i_dat < *s_dat) {
+      carry_count++;
+    }
+    *s_dat += *i_dat;
+    carry = carry_count;
+    s_dat++; i_dat++;
+  }
+  return sum;
 }
 
 
@@ -116,7 +146,8 @@ int apint_compare(const ApInt *left, const ApInt *right) {
 
 ApInt *apint_copy(const ApInt *ap) {
   ApInt * new = apint_create_from_u64(0UL);
-  realloc(neg, ap->len * sizeof(uint64_t));
+  realloc(new, ap->len * sizeof(uint64_t));
+  assert(new);
   uint64_t * old = ap->data;
   uint64_t * new = new->data;
   for (int i = 0; i < ap->len; i++) {
