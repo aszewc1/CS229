@@ -40,7 +40,7 @@ ApInt *apint_negate(const ApInt *ap);
 ApInt *apint_add(const ApInt *a, const ApInt *b);
 ApInt *apint_sub(const ApInt *a, const ApInt *b);
 int apint_compare(const ApInt *left, const ApInt *right);
-
+ApInt *apint_copy(const ApInt *ap);
 #ifdef __cplusplus
 }
 #endif

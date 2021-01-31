@@ -51,9 +51,10 @@ int apint_is_negative(const ApInt *ap) {
 }
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
-	/* TODO: implement */
-	assert(0);
-	return 0UL;
+  if (n < ap->len) {
+    return ap->data[n-1];
+  }
+  return 0;
 }
 
 int apint_highest_bit_set(const ApInt *ap) {
@@ -80,15 +81,24 @@ char *apint_format_as_hex(const ApInt *ap) {
 }
 
 ApInt *apint_negate(const ApInt *ap) {
-	/* TODO: implement */
-	assert(0);
-	return NULL;
+  ApInt * neg = apint_copy(ap);
+  neg->sign = 1;
+  return neg;
 }
 
 ApInt *apint_add(const ApInt *a, const ApInt *b) {
-	/* TODO: implement */
-	assert(0);
-	return NULL;
+  ApInt * sum = apint_copy(a);
+  ApInt * inc = apint_copy(b);
+  if(apint_is_negative(a) ^ apint_is_negative(b)) {
+    if (apint_compare(a, b) > 0) {
+    }
+    else if (apint_compare(a, b) < 0) {
+    }
+    else {
+      return sum;
+    }
+  }
+  
 }
 
 
@@ -102,4 +112,15 @@ int apint_compare(const ApInt *left, const ApInt *right) {
 	/* TODO: implement */
 	assert(0);
 	return 0;
+}
+
+ApInt *apint_copy(const ApInt *ap) {
+  ApInt * new = apint_create_from_u64(0UL);
+  realloc(neg, ap->len * sizeof(uint64_t));
+  uint64_t * old = ap->data;
+  uint64_t * new = new->data;
+  for (int i = 0; i < ap->len; i++) {
+    *old = *new;
+  }
+  return new;  
 }
