@@ -14,11 +14,12 @@
 
 ApInt *apint_create_from_u64(uint64_t val) {
   ApInt * new = malloc(sizeof(ApInt));
+  assert(new);
   new->data = malloc(sizeof(uint64_t));
+  assert(new->data);
   *(new->data) = val;
   new->len = 1;
   new->sign = 0;
-  assert(0);
   return new;
 }
 
@@ -35,15 +36,18 @@ void apint_destroy(ApInt *ap) {
 }
 
 int apint_is_zero(const ApInt *ap) {
-	/* TODO: implement */
-	assert(0);
-	return 0;
+  uint64_t * curr = ap->data;
+  for (int i = 0; i < ap->len; i++) {
+    if (*curr != 0UL) {
+      return 0;
+    }
+    curr++;
+  }
+  return 1;
 }
 
 int apint_is_negative(const ApInt *ap) {
-	/* TODO: implement */
-	assert(0);
-	return 0;
+  return (int) sign;
 }
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
@@ -53,9 +57,20 @@ uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
 }
 
 int apint_highest_bit_set(const ApInt *ap) {
-	/* TODO: implement */
-	assert(0);
-	return -1;
+  if (apint_is_zero(ap)) {
+    return -1;
+  }
+
+  int msb = (len - 1) * 64;
+  uint64_t n = ap->data[len-1];
+  n = n / 2;
+  while (n != 0UL) {
+    n = n / 2;
+    msb++;
+  }
+
+  return msb;
+  
 }
 
 char *apint_format_as_hex(const ApInt *ap) {
