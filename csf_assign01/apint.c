@@ -37,8 +37,8 @@ void apint_destroy(ApInt *ap) {
 
 int apint_is_zero(const ApInt *ap) {
   uint64_t * curr = ap->data;
-  for (int i = 0; i < ap->len; i++) {
-    if (*curr != 0UL) {
+  for(int i = 0; i < ap->len; i++) {
+    if(*curr != 0UL) {
       return 0;
     }
     curr++;
@@ -51,7 +51,7 @@ int apint_is_negative(const ApInt *ap) {
 }
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
-  if (n < ap->len) {
+  if(n < ap->len) {
     return ap->data[n-1];
   }
   return 0;
@@ -65,7 +65,7 @@ int apint_highest_bit_set(const ApInt *ap) {
   int msb = (len - 1) * 64;
   uint64_t n = ap->data[len-1];
   n = n / 2;
-  while (n != 0UL) {
+  while(n != 0UL) {
     n = n / 2;
     msb++;
   }
@@ -87,70 +87,159 @@ ApInt *apint_negate(const ApInt *ap) {
 }
 
 ApInt *apint_add(const ApInt *a, const ApInt *b) {
-  ApInt * sum = apint_copy(a);
-  ApInt * inc = apint_copy(b);
   if(apint_is_negative(a) ^ apint_is_negative(b)) {
-    if (apint_compare(a, b) > 0) {
+    if(apint_compare(a, b) > 0) {
+      return apint_sub(a, apint_negate(b)); // hope this doesnt cause leak
     }
     else if (apint_compare(a, b) < 0) {
-    }
-    else {
-      return sum;
+      return apint_sub(b, apint_negate(a));
     }
   }
 
-  //algo
+  ApInt * sum = apint_copy(a);
+  ApInt * inc = apint_copy(b);
+  
   int max_len = 0;
-  if (sum->len > inc->len) {
-    max_len = sum_len;
-    realloc(inc, max_len * sizeof(uint64_t));
-    assert(inc);
+  if(sum->len > inc->len) {
+    max_len = sum->len;
+    realloc(inc->data, max_len * sizeof(uint64_t));
+    assert(inc->data);
   }
   else {
-    realloc(sum, max_len * sizeof(uint64_t));
-    assert(sum);
+    max_len = inc->len
+    realloc(sum->data, max_len * sizeof(uint64_t));
+    assert(sum->data);
   }
   
-  int carry = 0;
-  int carry_count = 0;
+  uint64_t carry = 0UL;
   uint64_t * s_dat = sum->data;
   uint64_t * i_dat = inc->data;
 
-  for (int i = 0; i < max_len; i++) {
-    if (*s_dat + carry < *s_dat) {
-      carry_count++;
+  for(int i = 0; i < max_len; i++) {
+    uint64_t count = 0UL;
+    if(*s_dat + carry < *s_dat) {
+      count++;
     }
     *s_dat += carry;
     if (*s_dat + *i_dat < *s_dat) {
-      carry_count++;
+      count++;
     }
     *s_dat += *i_dat;
-    carry = carry_count;
+    carry = count;
     s_dat++; i_dat++;
   }
+
+  if (carry != 0) {
+    realloc(sum->data, (sum->len + 1) * sizeof(uint64_t));
+    sum->data[sum->len] += carry;
+    sum->len += 1;
+  }
+  
+  apint_destroy(inc);
   return sum;
 }
 
 
 ApInt *apint_sub(const ApInt *a, const ApInt *b) {
-	/* TODO: implement */
-	assert(0);
-	return NULL;
+  if(apint_is_negative(a) ^ apint_is_negative(b)) {
+    if(apint_compare(a, b) > 0) {
+      return apint_add(a, apint_negate(b)); // hope this doesnt cause leak
+    }
+    else if (apint_compare(a, b) < 0) {
+      return apint_add(b, apint_negate(a));
+    }
+  }
+
+  if(apint_comare(b, a) > 0) {
+    return apint_negate(apint_sub(b, a));
+  }
+
+  ApInt * sub = apint_copy(a);
+  ApInt * dec = apint_copy(b);
+  
+  int max_len = 0;
+  if(sub->len > dec->len) {
+    max_len = sub->len;
+    realloc(dec->data, max_len * sizeof(uint64_t));
+    assert(dec->data);
+  }
+  else {
+    max_len = dec->len;
+    realloc(sub->data, max_len * sizeof(uint64_t));
+    assert(sub->data);
+  }
+  
+  uint64_t carry = 0;
+  uint64_t * s_dat = sum->data;
+  uint64_t * i_dat = inc->data;
+
+  for(int i = 0; i < max_len; i++) {
+    uint64_t count = 0;
+    if(*s_dat - carry > *s_dat) {
+      count++;
+    }
+    *s_dat -= carry;
+    if (*s_dat - *i_dat > *s_dat) {
+      count++;
+    }
+    *s_dat -= *i_dat;
+    carry = count;
+    s_dat++; i_dat++;
+  }
+
+  for(int i = max_len - 1; i >=0; i--) {
+    if(sub->data[i] == 0UL) {
+      sub->len -= 1;
+    }
+  }
+  realloc(sub->data, sub->len * sizeof(uint64_t));
+  apint_destroy(dec);
+  return sub;
 }
 
 int apint_compare(const ApInt *left, const ApInt *right) {
-	/* TODO: implement */
-	assert(0);
-	return 0;
+  int left_neg = apint_is_negative(left);
+  int righ_neg = apint_is_negative(right);
+  int both_pos = !left_neg && !righ_neg;
+  int both_neg = left_neg && righ_neg;
+
+  if(left_neg && !right_neg) {
+    return -1;
+  }
+  else if(!left_neg && righ_neg) {
+    return 1;
+  }
+
+  if(left->len > right->len && both_pos |
+     left->len < right->len && both_neg) {
+    return 1;
+  }
+  else if(right->len > left->len && both_pos |
+	  right->len < left->len && both_neg) {
+    return -1;
+  }
+
+  for(int i = left->len - 1; i >= 0; i--) {
+    if(left->data[i] > right->data[i] && both_pos |
+       left->data[i] < right->data[i] && both_neg) {
+      return 1;
+    }
+    if(right->data[i] > left->data[i] && both_pos |
+       right->data[i] < left->data[i] && both_neg) {
+      return -1;
+    }
+  }
+  return 0;
 }
 
 ApInt *apint_copy(const ApInt *ap) {
   ApInt * new = apint_create_from_u64(0UL);
-  realloc(new, ap->len * sizeof(uint64_t));
-  assert(new);
+  realloc(new->data, ap->len * sizeof(uint64_t));
+  assert(new->data);
+  new->len = ap->len;
   uint64_t * old = ap->data;
   uint64_t * new = new->data;
-  for (int i = 0; i < ap->len; i++) {
+  for(int i = 0; i < ap->len; i++) {
     *old = *new;
   }
   return new;  
