@@ -13,14 +13,15 @@
 #include "apint.h"
 
 ApInt *apint_create_from_u64(uint64_t val) {
-  ApInt * new = malloc(sizeof(ApInt));
-  assert(new);
-  new->data = malloc(sizeof(uint64_t));
-  assert(new->data);
-  *(new->data) = val;
-  new->len = 1;
-  new->sign = 0;
-  return new;
+  ApInt * ap = malloc(sizeof(ApInt));
+  assert(ap);
+  ap->data = malloc(sizeof(uint64_t));
+  assert(ap->data);
+  ap->data[0] = val;
+  ap->len = 1;
+  ap->sign = 0;
+  printf("Our data val: %lu\n address: %p\n", ap->data[0], ap->data);
+  return ap;
 }
 
 ApInt *apint_create_from_hex(const char *hex) {
@@ -51,7 +52,9 @@ int apint_is_negative(const ApInt *ap) {
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
   uint64_t length = ap->len;
-  if(n < length && n >= 0) {
+  if((n < length) && (n >= 0)) {
+    printf("Data address: %p\n", ap->data);
+    printf("Data %lu\nData[0] %lu\n", ap->data[n], ap->data[0]);
     return ap->data[n];
   }
   return 0;
@@ -89,10 +92,16 @@ ApInt *apint_negate(const ApInt *ap) {
 ApInt *apint_add(const ApInt *a, const ApInt *b) {
   if(apint_is_negative(a) ^ apint_is_negative(b)) {
     if(apint_compare(a, b) > 0) {
-      return apint_sub(a, apint_negate(b)); // hope this doesnt cause leak
+      ApInt * temp = apint_negate(b);
+      ApInt * ret = apint_sub(a, temp);
+      apint_destroy(temp);
+      return ret;
     }
     else if (apint_compare(a, b) < 0) {
-      return apint_sub(b, apint_negate(a));
+      ApInt * temp = apint_negate(a);
+      ApInt * ret = apint_sub(b, temp);
+      apint_destroy(temp);
+      return ret;
     }
   }
 
@@ -143,10 +152,16 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
 ApInt *apint_sub(const ApInt *a, const ApInt *b) {
   if(apint_is_negative(a) ^ apint_is_negative(b)) {
     if(apint_compare(a, b) > 0) {
-      return apint_add(a, apint_negate(b)); // hope this doesnt cause leak
+      ApInt * temp = apint_negate(b);
+      ApInt * ret = apint_add(a, temp);
+      apint_destroy(temp);
+      return ret;
     }
     else if (apint_compare(a, b) < 0) {
-      return apint_add(b, apint_negate(a));
+      ApInt * temp = apint_negate(a);
+      ApInt * ret = apint_add(b, temp);
+      apint_destroy(temp);
+      return ret;
     }
   }
 
