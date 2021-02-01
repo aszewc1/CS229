@@ -30,9 +30,7 @@ ApInt *apint_create_from_hex(const char *hex) {
 }
 
 void apint_destroy(ApInt *ap) {
-  free(ap->data);
   free(ap);
-  assert(0);
 }
 
 int apint_is_zero(const ApInt *ap) {
@@ -51,8 +49,9 @@ int apint_is_negative(const ApInt *ap) {
 }
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
-  if(n < ap->len) {
-    return ap->data[n-1];
+  uint64_t length = ap->len;
+  if(n < length && n >= 0) {
+    return ap->data[n];
   }
   return 0;
 }
