@@ -14,7 +14,7 @@
 
 /*Constructor given uint64_t value */
 ApInt *apint_create_from_u64(uint64_t val) {
-  ApInt * ap = (ApInt *) malloc(sizeof(ApInt)); //allocates memory
+  ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
   assert(ap);
   ap->data = malloc(sizeof(uint64_t)); //allocates memory for data values
   assert(ap->data);
