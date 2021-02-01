@@ -17,10 +17,9 @@ ApInt *apint_create_from_u64(uint64_t val) {
   assert(ap);
   ap->data = malloc(sizeof(uint64_t));
   assert(ap->data);
-  ap->data[0] = val;
+  *(ap->data) = val;
   ap->len = 1;
   ap->sign = 0;
-  printf("Our data val: %lu\n address: %p\n", ap->data[0], ap->data);
   return ap;
 }
 
@@ -52,10 +51,9 @@ int apint_is_negative(const ApInt *ap) {
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
   uint64_t length = ap->len;
-  if((n < length) && (n >= 0)) {
-    printf("Data address: %p\n", ap->data);
-    printf("Data %lu\nData[0] %lu\n", ap->data[n], ap->data[0]);
-    return ap->data[n];
+  uint64_t * bits = ap->data;
+  if(n < length) {
+    return bits[n];
   }
   return 0;
 }
@@ -225,22 +223,22 @@ int apint_compare(const ApInt *left, const ApInt *right) {
     return 1;
   }
 
-  if((left->len > right->len) && both_pos |
-     (left->len < right->len) && both_neg) {
+  if(((left->len > right->len) && both_pos) ||
+     ((left->len < right->len) && both_neg)) {
     return 1;
   }
-  else if((right->len > left->len) && both_pos |
-	  (right->len < left->len) && both_neg) {
+  else if(((right->len > left->len) && both_pos) ||
+	  ((right->len < left->len) && both_neg)) {
     return -1;
   }
 
   for(int i = left->len - 1; i >= 0; i--) {
-    if((left->data[i] > right->data[i]) && both_pos |
-       (left->data[i] < right->data[i]) && both_neg) {
+    if(((left->data[i] > right->data[i]) && both_pos) ||
+       ((left->data[i] < right->data[i]) && both_neg)) {
       return 1;
     }
-    if((right->data[i] > left->data[i]) && both_pos |
-       (right->data[i] < left->data[i]) && both_neg) {
+    if(((right->data[i] > left->data[i]) && both_pos) ||
+       ((right->data[i] < left->data[i]) && both_neg)) {
       return -1;
     }
   }
@@ -255,7 +253,7 @@ ApInt *apint_copy(const ApInt *ap) {
   uint64_t * old = ap->data;
   uint64_t * now = new->data;
   for(int i = 0; (uint64_t) i < ap->len; i++) {
-    *old = *now;
+    now[i] = old[i];
   }
   return new;  
 }
