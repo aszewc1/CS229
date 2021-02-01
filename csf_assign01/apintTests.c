@@ -23,6 +23,7 @@ typedef struct {
 	ApInt *ap110660361;
 	ApInt *max1;
 	ApInt *minus1;
+   ApInt *ap11204;
 	/* TODO: add additional fields of test fixture */
 } TestObjs;
 
@@ -66,6 +67,7 @@ TestObjs *setup(void) {
 	objs->ap110660361 = apint_create_from_u64(110660361UL);
 	objs->max1 = apint_create_from_u64(0xFFFFFFFFFFFFFFFFUL);
 	objs->minus1 = apint_negate(objs->ap1);
+   objs->ap11204 = apint_create_from_u64(11204UL);
 	/* TODO: initialize additional members of test fixture */
 
 	return objs;
@@ -77,6 +79,7 @@ void cleanup(TestObjs *objs) {
 	apint_destroy(objs->ap110660361);
 	apint_destroy(objs->max1);
 	apint_destroy(objs->minus1);
+   apint_destroy(objs->ap11204);
 	/* TODO: destroy additional members of test fixture */
 
 	free(objs);
@@ -87,6 +90,7 @@ void testCreateFromU64(TestObjs *objs) {
 	ASSERT(1UL == apint_get_bits(objs->ap1, 0));
 	ASSERT(110660361UL == apint_get_bits(objs->ap110660361, 0));
 	ASSERT(0xFFFFFFFFFFFFFFFFUL == apint_get_bits(objs->max1, 0));
+   ASSERT(11204UL == apint_get_bits(objs->ap11204, 0));
 }
 
 void testHighestBitSet(TestObjs *objs) {
@@ -94,9 +98,11 @@ void testHighestBitSet(TestObjs *objs) {
 	ASSERT(0 == apint_highest_bit_set(objs->ap1));
 	ASSERT(26 == apint_highest_bit_set(objs->ap110660361));
 	ASSERT(63 == apint_highest_bit_set(objs->max1));
+   ASSERT(14 == apint_highest_bit_set(objs->ap11204));
 }
 
 void testCompare(TestObjs *objs) {
+   ApInt *a, *b, *sum;
 	/* 1 > 0 */
 	ASSERT(apint_compare(objs->ap1, objs->ap0) > 0);
 	/* 0 < 1 */
@@ -109,15 +115,32 @@ void testCompare(TestObjs *objs) {
 	ASSERT(apint_compare(objs->ap0, objs->ap110660361) < 0);
 	/* 1 < 110660361 */
 	ASSERT(apint_compare(objs->ap1, objs->ap110660361) < 0);
+   
+   /* 1 = 1 */
+   sum = apint_add(objs->ap1, objs->ap0);
+	ASSERT(apint_compare(objs->ap1, sum) == 0);
+   apint_destroy(sum);
+   
+   /* larger cases */
+   a = apint_create_from_hex("5b6a7d127b4007e7b95a2e0b6f9c281ebafc45911b348a28015d811d335b5909c939f2b6986e409f");
+   b = apint_create_from_hex("3d6ab25858932");
+   ASSERT(apint_compare(a, b) > 0);
+   apint_destroy(b);
+   apint_destroy(a);
+
+   
 }
 
 void testFormatAsHex(TestObjs *objs) {
 	char *s;
 
-	ASSERT(0 == strcmp("0", (s = apint_format_as_hex(objs->ap0))));
+   ASSERT(0 == strcmp("0", (s = apint_format_as_hex(objs->ap0))));
 	free(s);
 
 	ASSERT(0 == strcmp("1", (s = apint_format_as_hex(objs->ap1))));
+	free(s);
+   
+   ASSERT(0 == strcmp("-1", (s = apint_format_as_hex(objs->minus1))));
 	free(s);
 
 	ASSERT(0 == strcmp("6988b09", (s = apint_format_as_hex(objs->ap110660361))));
@@ -125,10 +148,15 @@ void testFormatAsHex(TestObjs *objs) {
 
 	ASSERT(0 == strcmp("ffffffffffffffff", (s = apint_format_as_hex(objs->max1))));
 	free(s);
+   
+   ASSERT(0 == strcmp("2BC4", (s = apint_format_as_hex(objs->ap11204))));
+	free(s);
+   
+   
 }
 
 void testAdd(TestObjs *objs) {
-	ApInt *sum;
+	ApInt *a, *b, *sum;
 	char *s;
 
 	/* 0 + 0 = 0 */
@@ -160,6 +188,42 @@ void testAdd(TestObjs *objs) {
 	ASSERT(0 == strcmp("10000000000000000", (s = apint_format_as_hex(sum))));
 	apint_destroy(sum);
 	free(s);
+   
+   /* 110660361 + 11204 = 110,671,565*/
+   sum = apint_add(objs->max1, objs->ap1);
+	ASSERT(0 == strcmp("110,671,565", (s = apint_format_as_hex(sum))));
+	apint_destroy(sum);
+	free(s);
+   
+   /* test involving larger values */
+	a = apint_create_from_hex("c16e712e5d2794a3496ff5c7e0106cac9b2949d462a21de27254d8414d04142446c8e841ddd3b8564f0ee06e9a5");
+	b = apint_create_from_hex("95fdce7a109e35fff4bd");
+	sum = apint_add(a, b);
+	ASSERT(0 == strcmp("c16e712e5d2794a3496ff5c7e0106cac9b2949d462a21de27254d8414d04142446c8e84b3db09ff758f2406de62",
+		(s = apint_format_as_hex(sum))));
+	apint_destroy(sum);
+	apint_destroy(b);
+	apint_destroy(a);
+	free(s);
+   
+   /* test involving negative */
+	sum = apint_add(objs->ap1, objs->minus1);
+	ASSERT(0 == strcmp("0", (s = apint_format_as_hex(sum))));
+	apint_destroy(sum);
+	free(s);
+   
+   /* test involving larger values */
+	a = apint_create_from_hex("6ffc4d9d8e7");
+	b = apint_create_from_hex("6190496725a798c966df1638b83b4c67493be375");
+	sum = apint_add(a, b);
+	ASSERT(0 == strcmp("6190496725a798c966df1638b83b53670e15bc5c",
+		(s = apint_format_as_hex(sum))));
+	apint_destroy(sum);
+	apint_destroy(b);
+	apint_destroy(a);
+	free(s);
+
+   
 }
 
 void testSub(TestObjs *objs) {
@@ -214,6 +278,17 @@ void testSub(TestObjs *objs) {
 	apint_destroy(b);
 	apint_destroy(a);
 	free(s);
+   
+   /* more larger cases */
+   a = apint_create_from_hex("a6ea18dd7b00fd0b389934b7cfe2d9be4b66211b10249ed517b2243ea009418c6c20ded77e");
+	b = apint_create_from_hex("562b41ce730753683b2c555337874c870655bbc7f38661b37e996328419546bbde82");
+	diff = apint_sub(a, b);
+	ASSERT(0 == strcmp("a6ea18874fbf2e983145cc7ca38d8686c4199a14ba68d6e1915070c006a6194ad6da22f8fc",
+		(s = apint_format_as_hex(diff))));
+	apint_destroy(diff);
+	apint_destroy(b);
+	apint_destroy(a);
+	free(s);
 }
 
-/* TODO: add more test functions */
+
