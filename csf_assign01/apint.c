@@ -12,10 +12,11 @@
 #include <assert.h>
 #include "apint.h"
 
+/*Constructor given uint64_t value */
 ApInt *apint_create_from_u64(uint64_t val) {
-  ApInt * ap = malloc(sizeof(ApInt));
+  ApInt * ap = (ApInt *) malloc(sizeof(ApInt)); //allocates memory
   assert(ap);
-  ap->data = malloc(sizeof(uint64_t));
+  ap->data = malloc(sizeof(uint64_t)); //allocates memory for data values
   assert(ap->data);
   *(ap->data) = val;
   ap->len = 1;
@@ -23,17 +24,22 @@ ApInt *apint_create_from_u64(uint64_t val) {
   return ap;
 }
 
+/* Constructor given hex value */
 ApInt *apint_create_from_hex(const char *hex) {
 	/* TODO: implement */
 	assert(0);
 	return NULL;
 }
 
+/* Deconstructor */
 void apint_destroy(ApInt *ap) {
-  free(ap->data);
+  free(ap->data); // frees data
   free(ap);
 }
 
+/* checks if data is zero.
+*if true, return 1, else return 0
+*/
 int apint_is_zero(const ApInt *ap) {
   uint64_t * curr = ap->data;
   for(int i = 0; (uint64_t) i < ap->len; i++) {
@@ -45,9 +51,11 @@ int apint_is_zero(const ApInt *ap) {
   return 1;
 }
 
+/* returns 0 if non-negative, 1 if negative */
 int apint_is_negative(const ApInt *ap) {
   return (int) ap->sign;
 }
+
 
 uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
   uint64_t length = ap->len;
@@ -58,7 +66,9 @@ uint64_t apint_get_bits(const ApInt *ap, unsigned n) {
   return 0;
 }
 
+/* searches for most significant bit with 1*/
 int apint_highest_bit_set(const ApInt *ap) {
+  //base case: if zero, there are no significant 1 bits
   if (apint_is_zero(ap)) {
     return -1;
   }
@@ -66,36 +76,42 @@ int apint_highest_bit_set(const ApInt *ap) {
   int msb = (ap->len - 1) * 64;
   uint64_t n = ap->data[ap->len-1];
   n = n / 2;
+  /* Loops to find most significant bit
+  *when n=0 loop ends; if n < 2, as integer division rounds down
+  */
   while(n != 0UL) {
     n = n / 2;
     msb++;
   }
 
-  return msb;
+  return msb; //returns location of significant bit
   
 }
 
+/* formats uint64_t data into hex*/
 char *apint_format_as_hex(const ApInt *ap) {
 	/* TODO: implement */
 	assert(0);
 	return NULL;
 }
 
+/* Negates given data and switches signs*/
 ApInt *apint_negate(const ApInt *ap) {
   ApInt * neg = apint_copy(ap);
   neg->sign = 1;
   return neg;
 }
 
+/* Method to add two uint64_t data values*/
 ApInt *apint_add(const ApInt *a, const ApInt *b) {
-  if(apint_is_negative(a) ^ apint_is_negative(b)) {
-    if(apint_compare(a, b) > 0) {
+  if(apint_is_negative(a) ^ apint_is_negative(b)) { // bitwise XOR
+    if(apint_compare(a, b) > 0) { //case where a > b
       ApInt * temp = apint_negate(b);
       ApInt * ret = apint_sub(a, temp);
       apint_destroy(temp);
       return ret;
     }
-    else if (apint_compare(a, b) < 0) {
+    else if (apint_compare(a, b) < 0) { //case where a < b
       ApInt * temp = apint_negate(a);
       ApInt * ret = apint_sub(b, temp);
       apint_destroy(temp);
@@ -109,16 +125,16 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
   int max_len = 0;
   if(sum->len > inc->len) {
     max_len = sum->len;
-    inc->data = realloc(inc->data, max_len * sizeof(uint64_t));
+    inc->data = realloc(inc->data, max_len * sizeof(uint64_t)); //resizes memory of data
     assert(inc->data);
   }
   else {
     max_len = inc->len;
-    sum->data = realloc(sum->data, max_len * sizeof(uint64_t));
+    sum->data = realloc(sum->data, max_len * sizeof(uint64_t));//resizes memory of data
     assert(sum->data);
   }
-  
-  uint64_t carry = 0UL;
+	
+  uint64_t carry = 0UL; //bit carried over during add operation
   uint64_t * s_dat = sum->data;
   uint64_t * i_dat = inc->data;
 
@@ -146,16 +162,16 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
   return sum;
 }
 
-
+/* Method to subtract 2 data values */
 ApInt *apint_sub(const ApInt *a, const ApInt *b) {
-  if(apint_is_negative(a) ^ apint_is_negative(b)) {
-    if(apint_compare(a, b) > 0) {
+  if(apint_is_negative(a) ^ apint_is_negative(b)) { //bitwise XOR
+    if(apint_compare(a, b) > 0) { //case where a > b
       ApInt * temp = apint_negate(b);
       ApInt * ret = apint_add(a, temp);
       apint_destroy(temp);
       return ret;
     }
-    else if (apint_compare(a, b) < 0) {
+    else if (apint_compare(a, b) < 0) {//case where a < b resulting in negative result
       ApInt * temp = apint_negate(a);
       ApInt * ret = apint_add(b, temp);
       apint_destroy(temp);
@@ -182,12 +198,12 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
     assert(sub->data);
   }
   
-  uint64_t carry = 0;
+  uint64_t carry = 0UL; //bit carried over during operation
   uint64_t * s_dat = sub->data;
   uint64_t * i_dat = dec->data;
 
   for(int i = 0; i < max_len; i++) {
-    uint64_t count = 0;
+    uint64_t count = 0UL;
     if(*s_dat - carry > *s_dat) {
       count++;
     }
@@ -210,6 +226,11 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
   return sub;
 }
 
+/* Compares 2 given data values 
+*if result is less than 1, *right is greater than * left.
+*if result is greater than 1, *left is greater than *right.
+*if result is zero, returns 0.
+*/
 int apint_compare(const ApInt *left, const ApInt *right) {
   int left_neg = apint_is_negative(left);
   int righ_neg = apint_is_negative(right);
@@ -222,7 +243,8 @@ int apint_compare(const ApInt *left, const ApInt *right) {
   else if(!left_neg && righ_neg) {
     return 1;
   }
-
+  
+  /* uses length to determine which is larger. Value with greater length is larger*/
   if(((left->len > right->len) && both_pos) ||
      ((left->len < right->len) && both_neg)) {
     return 1;
@@ -245,6 +267,7 @@ int apint_compare(const ApInt *left, const ApInt *right) {
   return 0;
 }
 
+/* method to clone/copy data values*/
 ApInt *apint_copy(const ApInt *ap) {
   ApInt * new = apint_create_from_u64(0UL);
   new->data = realloc(new->data, ap->len * sizeof(uint64_t));
