@@ -98,7 +98,8 @@ char *apint_format_as_hex(const ApInt *ap) {
 /* Negates given data and switches signs*/
 ApInt *apint_negate(const ApInt *ap) {
   ApInt * neg = apint_copy(ap);
-  neg->sign = 1;
+  neg->sign = (ap->sign > 0) ? 0 : 1;
+  if (apint_is_zero(ap)) { neg->sign = ap->sign; }
   return neg;
 }
 
@@ -164,14 +165,14 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
 
 /* Method to subtract 2 data values */
 ApInt *apint_sub(const ApInt *a, const ApInt *b) {
-  if(apint_is_negative(a) ^ apint_is_negative(b)) { //bitwise XOR
-    if(apint_compare(a, b) > 0) { //case where a > b
+  if(apint_is_negative(a) ^ apint_is_negative(b)) { // only one number negative
+    if(apint_compare(a, b) > 0) { // case where b is negative
       ApInt * temp = apint_negate(b);
       ApInt * ret = apint_add(a, temp);
       apint_destroy(temp);
       return ret;
     }
-    else if (apint_compare(a, b) < 0) {//case where a < b resulting in negative result
+    else if (apint_compare(a, b) < 0) { // case where a is negative
       ApInt * temp = apint_negate(a);
       ApInt * ret = apint_add(b, temp);
       apint_destroy(temp);
@@ -179,7 +180,13 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
     }
   }
 
-  if(apint_compare(b, a) > 0) {
+  if(
+     ((apint_compare(b, a) > 0)
+      && !apint_is_negative(a)
+      && !apint_is_negative(b)) ||
+     ((apint_compare(a, b) > 0)
+      && apint_is_negative(a)
+      && apint_is_negative(b))) {
     return apint_negate(apint_sub(b, a));
   }
 
@@ -216,7 +223,7 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
     s_dat++; i_dat++;
   }
 
-  for(int i = max_len - 1; i >=0; i--) {
+  for(int i = max_len - 1; i > 0; i--) {
     if(sub->data[i] == 0UL) {
       sub->len -= 1;
     }
