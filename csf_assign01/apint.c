@@ -100,6 +100,7 @@ int apint_highest_bit_set(const ApInt *ap) {
 char *apint_format_as_hex(const ApInt *ap) {
 	/* TODO: implement */
 	assert(0);
+	(void) *ap;
 	return NULL;
 }
 
