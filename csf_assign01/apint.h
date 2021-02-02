@@ -25,23 +25,24 @@ typedef struct {
   uint8_t sign;     // sign flag for int
 } ApInt;
 
-/* Constructors and destructors */
-ApInt *apint_create_from_u64(uint64_t val);
-ApInt *apint_create_from_hex(const char *hex);
-void apint_destroy(ApInt *ap);
+  /* Constructors and destructors */
+  ApInt *apint_create_from_u64(uint64_t val);
+  ApInt *apint_create_from_hex(const char *hex);
+  void apint_destroy(ApInt *ap);
 
-/* Operations */
-int apint_is_zero(const ApInt *ap);
-int apint_is_negative(const ApInt *ap);
-uint64_t apint_get_bits(const ApInt *ap, unsigned n);
-int apint_highest_bit_set(const ApInt *ap);
-char *apint_format_as_hex(const ApInt *ap);
-ApInt *apint_negate(const ApInt *ap);
-ApInt *apint_add(const ApInt *a, const ApInt *b);
-ApInt *apint_sub(const ApInt *a, const ApInt *b);
-int apint_compare(const ApInt *left, const ApInt *right);
-ApInt *apint_copy(const ApInt *ap);
-  int apint_resize(ApInt *a, ApInt *b);
+  /* Operations */
+  int apint_is_zero(const ApInt *ap);
+  int apint_is_negative(const ApInt *ap);
+  uint64_t apint_get_bits(const ApInt *ap, unsigned n);
+  int apint_highest_bit_set(const ApInt *ap);
+  char *apint_format_as_hex(const ApInt *ap);
+  ApInt *apint_negate(const ApInt *ap);
+  ApInt *apint_add(const ApInt *a, const ApInt *b);
+  ApInt *apint_sub(const ApInt *a, const ApInt *b);
+  int apint_compare(const ApInt *left, const ApInt *right);
+  ApInt *apint_copy(const ApInt *ap);
+  uint64_t apint_resize(ApInt *a, ApInt *b);
+
 #ifdef __cplusplus
 }
 #endif

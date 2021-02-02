@@ -26,18 +26,18 @@ ApInt *apint_create_from_u64(uint64_t val) {
 
 /* Constructor given hex value */
 ApInt *apint_create_from_hex(const char *hex) {
-  ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
+  ApInt * ap = malloc(sizeof(ApInt)); // allocates memory
   assert(ap);
   ap->data = malloc(sizeof(uint64_t)); //allocates memory for data values
   assert(ap->data);
   char *endpt;
-  size_t hexSize = strlen(hex); 
-  int xSize = (int) hexSize;
+  //size_t hexSize = strlen(hex); 
+  //int xSize = (int) hexSize;
   /*strtoull converts string to unsigned long long (uint64_t) 
    *16 used as base for hexadecimals. 
    */
   *(ap->data) = strtoull(hex, &endpt, 16); 
-  printf("%llu\n", *ap->data);
+  //printf("%llu\n", *ap->data);
   ap->len = 1;
   if (*ap->data < 0) {
    ap->sign = 1;
@@ -45,7 +45,6 @@ ApInt *apint_create_from_hex(const char *hex) {
   ap->sign = 0;
   return ap;
 }
-
 
 /* Deconstructor to free dynamically allocated memory */
 void apint_destroy(ApInt *ap) {
@@ -94,8 +93,7 @@ int apint_highest_bit_set(const ApInt *ap) {
     msb++;
   }
 
-  return msb; // returns index of highest set bit
-  
+  return msb; // returns index of highest set bit  
 }
 
 /* Format uint64_t data into hex*/
@@ -111,21 +109,6 @@ ApInt *apint_negate(const ApInt *ap) {
   neg->sign = (ap->sign > 0) ? 0 : 1;
   if (apint_is_zero(ap)) { neg->sign = ap->sign; }
   return neg;
-}
-
-/* resizes apints to equivalent length */
-int apint_resize(ApInt *a, ApInt *b) {
-  if(a->len > b->len) {
-    b->data = realloc(b->data, a->len * sizeof(uint64_t));
-    assert(b->data);
-    b->len = a->len;
-    return a->len;
-  }
-
-  a->data = realloc(a->data, b->len * sizeof(uint64_t));
-  assert(a->data);
-  a->len = b->len;
-  return b->len;
 }
 
 /* Method to add two uint64_t data values
@@ -294,3 +277,16 @@ ApInt *apint_copy(const ApInt *ap) {
   return new;  
 }
 
+/* resizes apints to equivalent length */
+uint64_t apint_resize(ApInt *a, ApInt *b) {
+  if(a->len > b->len) {
+    b->data = realloc(b->data, a->len * sizeof(uint64_t));
+    assert(b->data);
+    b->len = a->len;
+    return a->len;
+  }
+  a->data = realloc(a->data, b->len * sizeof(uint64_t));
+  assert(a->data);
+  a->len = b->len;
+  return (int) b->len;
+}

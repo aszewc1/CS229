@@ -98,6 +98,7 @@ void cleanup(TestObjs *objs) {
   apint_destroy(objs->apSUB);
   apint_destroy(objs->apCARRY);
   apint_destroy(objs->apADD);
+  apint_destroy(objs->apHex20);
   free(objs);
 }
 
