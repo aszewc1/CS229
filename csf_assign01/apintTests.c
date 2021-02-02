@@ -163,7 +163,20 @@ void testAddNoHex(TestObjs *objs) {
   ASSERT(!apint_is_negative(sum));
   ASSERT(apint_is_zero(sum));
   apint_destroy(sum);
+  
+  /*0 = 1 + (-1) */
+  sum = apint_add(objs->ap1, objs->minus1);
+  ASSERT(apint_compare(objs->ap0, sum) == 0);
+  ASSERT(!apint_is_negative(sum));
+  ASSERT(apint_is_zero(sum));
+  apint_destroy(sum);
 
+  /* -1 = 0 + (-1) */
+  sum = apint_add(objs->ap0, objs->minus1);
+  ASSERT(apint_compare(objs->minus1, sum) == 0);
+  ASSERT(apint_is_negative(sum));
+  apint_destroy(sum);
+  
   sum = apint_add(objs->apADD, objs->apADD);
   ASSERT(apint_compare(sum, objs->apADD) > 0);
   ASSERT(!apint_is_zero(sum));
