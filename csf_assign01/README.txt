@@ -14,7 +14,7 @@ Alexandra Szewc		aszewc1
 
 Victor Wen		vwen2
 - helped debug
--fixed implicit declaration warning
+- fixed implicit declaration warning
 - added more test cases for unit tests
 - added comments
--wrote create_from_hex function
+- wrote create_from_hex function
