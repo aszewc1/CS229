@@ -39,7 +39,7 @@ ApInt *apint_create_from_hex(const char *hex) {
   *(ap->data) = strtoull(hex, &endpt, 16); 
   //printf("%llu\n", *ap->data);
   ap->len = 1;
-  if (*ap->data < 0) {
+  if ('-' == hex[0]) {
    ap->sign = 1;
   }
   ap->sign = 0;
