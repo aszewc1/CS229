@@ -31,12 +31,14 @@ typedef struct {
   ApInt *apSUB;
   ApInt *apCARRY;
   ApInt *apADD;
+  ApInt *apHex20;
 } TestObjs;
 
 TestObjs *setup(void);
 void cleanup(TestObjs *objs);
 
 void testCreateFromU64(TestObjs *objs);
+void testCreateFromHex(TestObjs *objs);
 void testHighestBitSet(TestObjs *objs);
 void testCompare(TestObjs *objs);
 void testAddNoHex(TestObjs *objs);
@@ -57,7 +59,8 @@ int main(int argc, char **argv) {
 	}
 
 	TEST(testCreateFromU64); // tests for negative & zero throughout
-	TEST(testHighestBitSet);
+	TEST(testCreateFromHex);
+   TEST(testHighestBitSet);
 	TEST(testCompare);
 	TEST(testAddNoHex);
 	TEST(testSubNoHex);
@@ -80,6 +83,7 @@ TestObjs *setup(void) {
   objs->apSUB = apint_sub(objs->max1, objs->max1);
   objs->apCARRY = apint_create_from_u64(99999999UL);
   objs->apADD = apint_add(objs->apCARRY, objs->apCARRY);
+  objs->apHex20 = apint_create_from_hex("14");
   return objs;
 }
 
@@ -111,6 +115,9 @@ void testCreateFromU64(TestObjs *objs) {
   ASSERT(1 == apint_is_zero(objs->apSUB));
   ASSERT(99999999UL == apint_get_bits(objs->apCARRY, 0));
   ASSERT(199999998UL == apint_get_bits(objs->apADD, 0));
+}
+void testCreateFromHex(TestObjs * objs) {
+  ASSERT(20UL == apint_get_bits(objs->apHex20, 0));
 }
 
 void testHighestBitSet(TestObjs *objs) {
