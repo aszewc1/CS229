@@ -26,10 +26,26 @@ ApInt *apint_create_from_u64(uint64_t val) {
 
 /* Constructor given hex value */
 ApInt *apint_create_from_hex(const char *hex) {
-  /* TODO: implement */
-  assert(0);
-  return NULL;
+  ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
+  assert(ap);
+  ap->data = malloc(sizeof(uint64_t)); //allocates memory for data values
+  assert(ap->data);
+  char *endpt;
+  size_t hexSize = strlen(hex); 
+  int xSize = (int) hexSize;
+  /*strtoull converts string to unsigned long long (uint64_t) 
+   *16 used as base for hexadecimals. 
+   */
+  *(ap->data) = strtoull(hex, &endpt, 16); 
+  printf("%llu\n", *ap->data);
+  ap->len = 1;
+  if (*ap->data < 0) {
+   ap->sign = 1;
+  }
+  ap->sign = 0;
+  return ap;
 }
+
 
 /* Deconstructor to free dynamically allocated memory */
 void apint_destroy(ApInt *ap) {
