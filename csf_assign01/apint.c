@@ -101,19 +101,17 @@ ApInt *apint_negate(const ApInt *ap) {
  * Depending on signs, sub method may be called
  */
 ApInt *apint_add(const ApInt *a, const ApInt *b) {
-  if(apint_is_negative(a) ^ apint_is_negative(b)) { // only one negative value
-    if(apint_compare(a, b) > 0) { // b is negative
-      ApInt * temp = apint_negate(b);
-      ApInt * ret = apint_sub(a, temp);
-      apint_destroy(temp);
-      return ret;
-    }
-    else if (apint_compare(a, b) < 0) { // a is negative
-      ApInt * temp = apint_negate(a);
-      ApInt * ret = apint_sub(b, temp);
-      apint_destroy(temp);
-      return ret;
-    }
+  if(apint_is_negative(a) && !apint_is_negative(b)) { // a is negative
+    ApInt * temp = apint_negate(a);
+    ApInt * ret = apint_sub(b, temp);
+    apint_destroy(temp);
+    return ret;
+  }
+  if(apint_is_negative(b) && !apint_is_negative(a)) { // b is negative
+    ApInt * temp = apint_negate(b);
+    ApInt * ret = apint_sub(a, temp);
+    apint_destroy(temp);
+    return ret;
   }
 
   ApInt * sum = apint_copy(a);
@@ -151,21 +149,15 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
 
 /* Method to subtract 2 data values */
 ApInt *apint_sub(const ApInt *a, const ApInt *b) {
-  if(apint_is_negative(a) ^ apint_is_negative(b)) { // only one number negative
-    if(apint_compare(a, b) > 0) { // case where b is negative
-      ApInt * temp = apint_negate(b);
-      ApInt * ret = apint_add(a, temp);
-      apint_destroy(temp);
-      return ret;
-    }
-    else if (apint_compare(a, b) < 0) { // case where a is negative
-      ApInt * temp = apint_negate(a);
-      ApInt * ret = apint_add(b, temp);
-      apint_destroy(temp);
-      return ret;
-    }
+  if((apint_is_negative(a) && !apint_is_negative(b)) || // only a is negative
+     (apint_is_negative(b) && !apint_is_negative(a))) { // only b is negative
+    ApInt * temp = apint_negate(b);
+    ApInt * ret = apint_add(a, temp);
+    apint_destroy(temp);
+    return ret;
   }
 
+  // check if necessary to change order of subtraction
   if(((apint_compare(b, a) > 0)
       && !apint_is_negative(a) && !apint_is_negative(b)) ||
      ((apint_compare(a, b) > 0)
@@ -198,12 +190,13 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
     carry = count;
     s_dat++; i_dat++;
   }
-
+  
   for(int i = max_len - 1; i > 0; i--) {
     if(sub->data[i] == 0UL) {
       sub->len -= 1; // reduction of length as appropriate
     }
   }
+  if (apint_is_zero(sub)) { sub->sign = 0; }
   sub->data = realloc(sub->data, sub->len * sizeof(uint64_t));
   apint_destroy(dec);
   return sub;
