@@ -204,6 +204,13 @@ void testSubNoHex(TestObjs *objs) {
   ASSERT(apint_compare(sub, objs->minus1) == 0);
   ASSERT(apint_is_negative(sub));
   apint_destroy(sub);
+  
+  /* 0 = -1 - (-1) */
+  sub = apint_sub(objs->minus1, objs->minus1);
+  ASSERT(apint_compare(sub, objs->0) == 0);
+  ASSERT(apint_is_zero(sub));
+  apint_destroy(sub);
+  
 
   sub = apint_sub(objs->max1, objs->ap1);
   neg = apint_sub(sub, objs->max1);
