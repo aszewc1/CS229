@@ -97,6 +97,21 @@ ApInt *apint_negate(const ApInt *ap) {
   return neg;
 }
 
+/* resizes apints to equivalent length */
+int apint_resize(ApInt *a, ApInt *b) {
+  if(a->len > b->len) {
+    b->data = realloc(b->data, a->len * sizeof(uint64_t));
+    assert(b->data);
+    b->len = a->len;
+    return a->len;
+  }
+
+  a->data = realloc(a->data, b->len * sizeof(uint64_t));
+  assert(a->data);
+  a->len = b->len;
+  return b->len;
+}
+
 /* Method to add two uint64_t data values
  * Depending on signs, sub method may be called
  */
@@ -262,17 +277,3 @@ ApInt *apint_copy(const ApInt *ap) {
   return new;  
 }
 
-/* resizes apints to equivalent length */
-int apint_resize(ApInt *a, ApInt *b) {
-  if(a->len > b->len) {
-    b->data = realloc(b->data, a->len * sizeof(uint64_t));
-    assert(b->data);
-    b->len = a->len;
-    return a->len;
-  }
-
-  a->data = realloc(a->data, b->len * sizeof(uint64_t));
-  assert(a->data);
-  a->len = b->len;
-  return b->len;
-}
