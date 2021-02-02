@@ -6,10 +6,13 @@ Alexandra Szewc		aszewc1
 
 - wrote representation for ApInt type
 - implemented all functions in ApInt
-- added helper to copy ApInts
--debugged code
+- added helpers for add and sub and to copy ApInts
+- debugged code
+- wrote some test cases
+- fixed memory leaks
+- helped comment code
 
 Victor Wen		vwen2
--helped debug
--added more test cases for unit tests
--added most comments
+- helped debug
+- added more test cases for unit tests
+- added most comments

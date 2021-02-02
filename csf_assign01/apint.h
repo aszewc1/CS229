@@ -41,6 +41,7 @@ ApInt *apint_add(const ApInt *a, const ApInt *b);
 ApInt *apint_sub(const ApInt *a, const ApInt *b);
 int apint_compare(const ApInt *left, const ApInt *right);
 ApInt *apint_copy(const ApInt *ap);
+  int apint_resize(ApInt *a, ApInt *b);
 #ifdef __cplusplus
 }
 #endif

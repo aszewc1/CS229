@@ -163,6 +163,18 @@ void testAddNoHex(TestObjs *objs) {
   ASSERT(!apint_is_negative(sum));
   ASSERT(apint_is_zero(sum));
   apint_destroy(sum);
+
+  sum = apint_add(objs->apADD, objs->apADD);
+  ASSERT(apint_compare(sum, objs->apADD) > 0);
+  ASSERT(!apint_is_zero(sum));
+  ASSERT(28 == apint_highest_bit_set(sum));
+  apint_destroy(sum);
+
+  sum = apint_add(objs->max1, objs->ap1);
+  ASSERT(apint_compare(sum, objs->max1) > 0);
+  ASSERT(!apint_is_zero(sum));
+  ASSERT(64 == apint_highest_bit_set(sum));
+  apint_destroy(sum);
 }
 
 void testSubNoHex(TestObjs *objs) {
