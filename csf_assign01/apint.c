@@ -269,6 +269,7 @@ ApInt *apint_copy(const ApInt *ap) {
   new->data = realloc(new->data, ap->len * sizeof(uint64_t));
   assert(new->data);
   new->len = ap->len;
+  new->sign = ap->sign;
   uint64_t * old = ap->data;
   uint64_t * now = new->data;
   for(int i = 0; (uint64_t) i < ap->len; i++) {
