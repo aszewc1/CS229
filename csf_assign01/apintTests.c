@@ -32,6 +32,7 @@ typedef struct {
   ApInt *apCARRY;
   ApInt *apADD;
   ApInt *apHex20;
+  ApInt *apHex174281552;
 } TestObjs;
 
 TestObjs *setup(void);
@@ -64,9 +65,9 @@ int main(int argc, char **argv) {
 	TEST(testCompare);
 	TEST(testAddNoHex);
 	TEST(testSubNoHex);
-	//TEST(testFormatAsHex);
-	//TEST(testAdd);
-	//TEST(testSub);
+	TEST(testFormatAsHex);
+	TEST(testAdd);
+	TEST(testSub);
 
 	TEST_FINI();
 }
@@ -84,6 +85,7 @@ TestObjs *setup(void) {
   objs->apCARRY = apint_create_from_u64(99999999UL);
   objs->apADD = apint_add(objs->apCARRY, objs->apCARRY);
   objs->apHex20 = apint_create_from_hex("14");
+  objs->apHex174281552 = apint_create_from_hex("174281552");
   return objs;
 }
 
@@ -99,6 +101,7 @@ void cleanup(TestObjs *objs) {
   apint_destroy(objs->apCARRY);
   apint_destroy(objs->apADD);
   apint_destroy(objs->apHex20);
+  apint_destroy(objs->apHex174281552);
   free(objs);
 }
 
@@ -119,6 +122,7 @@ void testCreateFromU64(TestObjs *objs) {
 }
 void testCreateFromHex(TestObjs * objs) {
   ASSERT(20UL == apint_get_bits(objs->apHex20, 0));
+  ASSERT(6243751250ULL == apint_get_bits(objs->apHex174281552, 0));
 }
 
 void testHighestBitSet(TestObjs *objs) {
@@ -149,12 +153,12 @@ void testCompare(TestObjs *objs) {
   ASSERT(apint_compare(objs->ap1, objs->ap110660361) < 0);
    
    /* larger cases */
-   /*a = apint_create_from_hex("5b6a7d127b4007e7b95a2e0b6f9c281ebafc45911b348a28015d811d335b5909c939f2b6986e409f");
-   b = apint_create_from_hex("3d6ab25858932");
+   ApInt *a = apint_create_from_hex("5b6a7d127b4007e7b95a2e0b6f9c281ebafc45911b348a28015d811d335b5909c939f2b6986e409f");
+   ApInt *b = apint_create_from_hex("3d6ab25858932");
    ASSERT(apint_compare(a, b) > 0);
    apint_destroy(b);
    apint_destroy(a);
-   */ 
+   
 }
 
 void testAddNoHex(TestObjs *objs) {
@@ -248,7 +252,7 @@ void testFormatAsHex(TestObjs *objs) {
   ASSERT(0 == strcmp("ffffffffffffffff", (s = apint_format_as_hex(objs->max1))));
   free(s);
    
-  ASSERT(0 == strcmp("2BC4", (s = apint_format_as_hex(objs->ap11204))));
+  ASSERT(0 == strcmp("2bc4", (s = apint_format_as_hex(objs->ap11204))));
   free(s); 
 }
 
@@ -288,7 +292,7 @@ void testAdd(TestObjs *objs) {
 	
   /* 110660361 + 11204 = 110,671,565*/
   sum = apint_add(objs->max1, objs->ap1);
-  ASSERT(0 == strcmp("110,671,565", (s = apint_format_as_hex(sum))));
+  ASSERT(0 == strcmp("110671565", (s = apint_format_as_hex(sum))));
   apint_destroy(sum);
   free(s);
    
