@@ -146,6 +146,11 @@ void testCreateFromHex(TestObjs * objs) {
   ASSERT(10029983454UL == apint_get_bits(objs->apHexNeg, 0));
   ASSERT(apint_is_negative(objs->apHexNeg));
 
+  a = apint_create_from_hex("f000000000000000"); // modulo edge case
+  ASSERT(17293822569102704640UL == apint_get_bits(a, 0));
+  ASSERT(!apint_is_negative(a));
+  apint_destroy(a);  
+
   a = apint_create_from_hex("-0000");
   ASSERT(0 == apint_get_bits(a, 0));
   ASSERT(!apint_is_negative(a));

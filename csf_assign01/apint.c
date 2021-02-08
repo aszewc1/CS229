@@ -41,7 +41,7 @@ ApInt *apint_create_from_hex(const char *hex) {
   for(int i = 0; i < len; i++) {
     char temp [17]; // temp data block
     int source = (i == len - 1) ? 0 : (int) strlen(hex) - (16 * (i+1));
-    int bytes = (i == len - 1) ? (int) strlen(hex) % 16 : 16;
+    int bytes = (i == len - 1) ? (int) (strlen(hex) - 1) % 16 + 1 : 16;
     memcpy(temp, hex+source, bytes);
     temp[bytes] = '\0';
     ap->data[i] = strtoul(temp, NULL, 16);
