@@ -324,12 +324,13 @@ ApInt *apint_lshift(ApInt *ap) {
 /* Shifts ApInt left by given number of bits */
 ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
   ApInt *a = apint_copy(ap);
-  int shift = n % 64; // determining intra block shift
-  int pow = n / 64;   // determining inter block shift
+  if(n == 0) { return a; } 
+  int shift = (n-1) % 64 + 1; // determining intra block shift
+  int pow = (n-1) / 64;       // determining inter block shift
   uint64_t carry = 0UL;
   for(int i = 0; (uint64_t) i < a->len; i++) {
     uint64_t val = a->data[i];
-    a->data[i] = val << shift;
+    a->data[i] = (val << (shift-1))*2;
     a->data[i] += carry;
     carry = (val & (~0UL << (64-shift))) >> (64-shift);
   }

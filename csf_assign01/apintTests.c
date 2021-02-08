@@ -541,19 +541,34 @@ void testlShift(TestObjs *objs) {
   ApInt *a, *shift;
   char * s;
   (void) objs;
+
+  a = apint_create_from_hex("3");
+  shift = apint_lshift_n(a, 0);
+  ASSERT(0 == strcmp("3", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s);
+
+  a = apint_create_from_hex("3");
+  shift = apint_lshift_n(a, 64);
+  ASSERT(0 == strcmp("30000000000000000", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s);
+  
   a = apint_create_from_hex("3");
   shift = apint_lshift(a);
   ASSERT(0 == strcmp("6", (s = apint_format_as_hex(shift))));
   apint_destroy(shift);
   apint_destroy(a);
-  free(s);     
+  free(s);
   
   a = apint_create_from_hex("2eedccd4453");
   shift = apint_lshift_n(a, 4);
   ASSERT(0 == strcmp("2eedccd44530", (s = apint_format_as_hex(shift))));
   apint_destroy(shift);
   apint_destroy(a);
-  free(s); 
+  free(s);
   
   a = apint_create_from_hex("-7eefccd22445099");
   shift = apint_lshift_n(a, 15);
