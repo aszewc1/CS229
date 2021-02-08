@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 	TEST(testFormatAsHex);
 	TEST(testAdd);
 	TEST(testSub);
-	
+	TEST(testlShift);
 	TEST_FINI();
 }
 
@@ -143,7 +143,7 @@ void testCreateFromHex(TestObjs * objs) {
   ASSERT(-10029983454ULL == apint_get_bits(objs->apHexNeg, 0));
 
   a = apint_create_from_hex("-17C86B7710C154");
-  ASSERT(-6694288348987732LL == apint_get_bits(a, 0));
+  ASSERT(-6694288348987732ULL == apint_get_bits(a, 0));
   apint_destroy(a);
  // ASSERT(9671406556917033397649408 == apint_get_bits(objs->apHexLarge1, 0));
 }
@@ -466,9 +466,10 @@ void testSub(TestObjs *objs) {
   free(s);     
 
 }
-/*
-void testlShift(objs) {
+
+void testlShift(TestObjs*objs) {
   ApInt *a, *shift;
+  char *s;
   a = apint_create_from_hex("3");
   shift = apint_lshift(a);
   ASSERT(0 == strcmp("6", (s = apint_format_as_hex(shift))));
@@ -477,18 +478,17 @@ void testlShift(objs) {
   free(s);     
   
   a = apint_create_from_hex("2eedccd4453");
-  shift = apint_lshift(a, 4);
+  shift = apint_lshift_n(a, 4);
   ASSERT(0 == strcmp("2eedccd44530", (s = apint_format_as_hex(shift))));
   apint_destroy(shift);
   apint_destroy(a);
   free(s); 
   
    a = apint_create_from_hex("-7eefccd22445099");
-  shift = apint_lshift(a, 15);
+  shift = apint_lshift_n(a, 15);
   ASSERT(0 == strcmp("-3F77E669122284C8000", (s = apint_format_as_hex(shift))));
   apint_destroy(shift);
   apint_destroy(a);
   free(s); 
 
 }
-*/
