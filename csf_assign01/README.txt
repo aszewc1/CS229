@@ -21,3 +21,5 @@ Victor Wen		vwen2
 - added more test cases for unit tests
 - added comments
 - wrote create_from_hex function and initial format_as_hex method
+-Minor fix on bonus function
+-fixed minor bugs in create_from_hex regarding negative sign
