@@ -11,6 +11,8 @@ Alexandra Szewc		aszewc1
 - wrote some test cases
 - fixed memory leaks
 - helped comment code
+- wrote create_from_hex and format_as_hex
+- fixed memory leaks resulting from resize method
 
 Victor Wen		vwen2
 - helped debug
