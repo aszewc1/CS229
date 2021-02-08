@@ -295,7 +295,7 @@ void testSubNoHex(TestObjs *objs) {
 }
 
 void testFormatAsHex(TestObjs *objs) {
-  char *s; ApInt *a;
+  char *s; ApInt *a; ApInt *b;
   
   ASSERT(0 == strcmp("0", (s = apint_format_as_hex(objs->ap0))));
   free(s);
@@ -305,6 +305,11 @@ void testFormatAsHex(TestObjs *objs) {
   free(s);
   apint_destroy(a);
 
+  a = apint_create_from_hex("-0000F001");
+  ASSERT(0 == strcmp("-f001", (s = apint_format_as_hex(a))));
+  free(s);
+  apint_destroy(a);
+  
   ASSERT(0 == strcmp("1", (s = apint_format_as_hex(objs->ap1))));
   free(s);
    
@@ -314,11 +319,34 @@ void testFormatAsHex(TestObjs *objs) {
   ASSERT(0 == strcmp("6988b09", (s = apint_format_as_hex(objs->ap110660361))));
   free(s);
 
-  ASSERT(0 == strcmp("ffffffffffffffff", (s = apint_format_as_hex(objs->max1))));
+  ASSERT(0 == strcmp("ffffffffffffffff",
+		     (s = apint_format_as_hex(objs->max1))));
   free(s);
    
   ASSERT(0 == strcmp("2bc4", (s = apint_format_as_hex(objs->ap11204))));
-  free(s); 
+  free(s);
+
+  a = apint_create_from_hex("-0000000000000000100000000000000000000000000000000");
+  ASSERT(0 == strcmp("-100000000000000000000000000000000",
+		     (s = apint_format_as_hex(a))));
+  free(s);
+  b = apint_add(a, objs->ap1);
+  ASSERT(0 == strcmp("-ffffffffffffffffffffffffffffffff",
+		     (s = apint_format_as_hex(b))));
+  free(s);
+  apint_destroy(a);
+  apint_destroy(b);
+
+  a = apint_create_from_hex("0000000000000000100000000000000000000000000000000");
+  ASSERT(0 == strcmp("100000000000000000000000000000000",
+		     (s = apint_format_as_hex(a))));
+  free(s);
+  b = apint_sub(a, objs->ap1);
+  ASSERT(0 == strcmp("ffffffffffffffffffffffffffffffff",
+		     (s = apint_format_as_hex(b))));
+  free(s);
+  apint_destroy(a);
+  apint_destroy(b);
 }
 
 void testAdd(TestObjs *objs) {
@@ -532,5 +560,12 @@ void testlShift(TestObjs *objs) {
   ASSERT(0 == strcmp("-3f77e669122284c8000", (s = apint_format_as_hex(shift))));
   apint_destroy(shift);
   apint_destroy(a);
-  free(s); 
+  free(s);
+
+  a = apint_create_from_hex("FF3262692abd4785634534fff23342");
+  shift = apint_lshift_n(a, 130);
+  ASSERT(0 == strcmp("3fcc989a4aaf51e158d14d3ffc8cd0800000000000000000000000000000000", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s);
 }

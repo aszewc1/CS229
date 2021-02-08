@@ -27,12 +27,13 @@ ApInt *apint_create_from_u64(uint64_t val) {
 
 /* Constructor given hex value */
 ApInt *apint_create_from_hex(const char *hex) {
-  ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
+  ApInt * ap = malloc(sizeof(ApInt));
   assert(ap);
-  if(hex[0] == '-') { ap->sign = 1; hex++; }
+  if(hex[0] == '-') { ap->sign = 1; hex++; } // sign determination
   else { ap->sign = 0; }
+  while(hex[0] == '0' && strlen(hex) > 1) { hex++; } // clear leading 0s
   int len = ((strlen(hex) * 4) + 63) / 64;
-  ap->data = malloc(len * sizeof(uint64_t)); //allocates memory for data values
+  ap->data = malloc(len * sizeof(uint64_t)); // allocates memory for data values
   assert(ap->data);
   ap->len = len;
   /*strtoull converts string to unsigned long long (uint64_t) 
@@ -42,7 +43,7 @@ ApInt *apint_create_from_hex(const char *hex) {
     char temp [17]; // temp data block
     int source = (i == len - 1) ? 0 : (int) strlen(hex) - (16 * (i+1));
     int bytes = (i == len - 1) ? (int) (strlen(hex) - 1) % 16 + 1 : 16;
-    memcpy(temp, hex+source, bytes);
+    memcpy(temp, hex+source, bytes); // copy apint units from string
     temp[bytes] = '\0';
     ap->data[i] = strtoul(temp, NULL, 16);
   }
@@ -107,15 +108,13 @@ char *apint_format_as_hex(const ApInt *ap) {
   if(apint_is_negative(ap)) { strcpy(result, "-"); }
   else { strcpy(result, ""); }
   char temp [17];
-  for(int i = (int) ap->len - 1; i >=0; i--) {
+  for(int i = (int) ap->len - 1; i >= 0; i--) {
     if(i == (int) ap->len - 1) {
-      sprintf(temp, "%lx", ap->data[i]);
+      sprintf(temp, "%lx", ap->data[i]); // no leading 0s on msb
     }
-    else { sprintf(temp, "%016lx", ap->data[i]); }
-    //printf("%s ", temp);
-    strcat(result, temp);
+    else { sprintf(temp, "%016lx", ap->data[i]); } // include leading 0s after
+    strcat(result, temp); // concatonate all together
   }
-  //printf("\nResult: %s\n", result);
   return result;
 }
 
@@ -325,8 +324,8 @@ ApInt *apint_lshift(ApInt *ap) {
 /* Shifts ApInt left by given number of bits */
 ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
   ApInt *a = apint_copy(ap);
-  int shift = n % 64;
-  int pow = n / 64;
+  int shift = n % 64; // determining intra block shift
+  int pow = n / 64;   // determining inter block shift
   uint64_t carry = 0UL;
   for(int i = 0; (uint64_t) i < a->len; i++) {
     uint64_t val = a->data[i];
@@ -341,9 +340,9 @@ ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
     a->len += 1; // expansion of length as appropriate
   }
 
-  if(pow > 0) {
+  if(pow > 0) { // rearranges uint64_t values as necessary if shifted >64 bits
     a->data = realloc(a->data, (a->len + pow) * sizeof(uint64_t));
-    for(int i = a->len - 1; i >= pow; i--) {
+    for(int i = a->len + pow - 1; i >= pow; i--) {
       a->data[i] = a->data[i-pow];
       a->data[i-pow] = 0UL;
     }
