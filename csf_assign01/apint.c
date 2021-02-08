@@ -142,7 +142,7 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
     apint_destroy(temp);
     return ret;
   }
-  
+
   ApInt * sum = apint_copy(a);
   ApInt * inc = apint_copy(b);
   // ensure both objects have same data length by resizing
@@ -296,11 +296,19 @@ uint64_t apint_resize(ApInt *a, ApInt *b) {
   if(a->len > b->len) {
     b->data = realloc(b->data, a->len * sizeof(uint64_t));
     assert(b->data);
+    for(int i = b->len; (uint64_t) i < a->len; i++) {
+      b->data[i] = 0UL;
+    }
     b->len = a->len;
     return a->len;
   }
-  a->data = realloc(a->data, b->len * sizeof(uint64_t));
-  assert(a->data);
-  a->len = b->len;
-  return b->len;
+  else {
+    a->data = realloc(a->data, b->len * sizeof(uint64_t));
+    assert(a->data);
+    for(int i = a->len; (uint64_t) i < b->len; i++) {
+      a->data[i] = 0UL;
+    }
+    a->len = b->len;
+    return b->len;
+  }
 }
