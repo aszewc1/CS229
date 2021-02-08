@@ -19,4 +19,4 @@ Victor Wen		vwen2
 - fixed implicit declaration warning
 - added more test cases for unit tests
 - added comments
-- wrote create_from_hex function
+- wrote create_from_hex function and initial format_as_hex method
