@@ -34,6 +34,9 @@ typedef struct {
   ApInt *apHex20;
   ApInt *apHex174281552;
   ApInt *apHex0;
+  ApInt *apHex6694288348987732;
+  ApInt *apHexLarge1;
+  ApInt *apHexNeg;
 } TestObjs;
 
 TestObjs *setup(void);
@@ -48,6 +51,7 @@ void testSubNoHex(TestObjs *objs);
 void testFormatAsHex(TestObjs *objs);
 void testAdd(TestObjs *objs);
 void testSub(TestObjs *objs);
+void testlShift(TestObjs *objs);
 
 int main(int argc, char **argv) {
 	TEST_INIT();
@@ -88,6 +92,9 @@ TestObjs *setup(void) {
   objs->apHex20 = apint_create_from_hex("14");
   objs->apHex174281552 = apint_create_from_hex("174281552");
   objs->apHex0 = apint_create_from_hex("0");
+  objs->apHex6694288348987732 = apint_create_from_hex("17C86B7710C154");
+  objs->apHexLarge1 = apint_create_from_hex("7FFFFFFFFFFFFFFFFFEE1");
+  objs->apHexNeg = apint_create_from_hex("-255D566DE");
   return objs;
 }
 
@@ -105,6 +112,9 @@ void cleanup(TestObjs *objs) {
   apint_destroy(objs->apHex20);
   apint_destroy(objs->apHex174281552);
   apint_destroy(objs->apHex0);
+  apint_destroy(objs->apHex6694288348987732);
+  apint_destroy(objs->apHexLarge1);
+  apint_destroy(objs->apHexNeg);
   free(objs);
 }
 
@@ -124,10 +134,18 @@ void testCreateFromU64(TestObjs *objs) {
   ASSERT(199999998UL == apint_get_bits(objs->apADD, 0));
 }
 void testCreateFromHex(TestObjs * objs) {
+  ApInt *a;
   ASSERT(20UL == apint_get_bits(objs->apHex20, 0));
   ASSERT(6243751250ULL == apint_get_bits(objs->apHex174281552, 0));
   ASSERT(0 == apint_get_bits(objs->apHex0, 0));
   ASSERT(apint_is_zero(objs->apHex0));
+  ASSERT(6694288348987732 == apint_get_bits(objs->apHex6694288348987732, 0));
+  ASSERT(-10029983454ULL == apint_get_bits(objs->apHexNeg, 0));
+
+  a = apint_create_from_hex("-17C86B7710C154");
+  ASSERT(-6694288348987732LL == apint_get_bits(a, 0));
+  apint_destroy(a);
+ // ASSERT(9671406556917033397649408 == apint_get_bits(objs->apHexLarge1, 0));
 }
 
 void testHighestBitSet(TestObjs *objs) {
@@ -318,6 +336,7 @@ void testAdd(TestObjs *objs) {
   apint_destroy(sum);
   free(s);
    
+   
   /* test involving larger values */
   a = apint_create_from_hex("6ffc4d9d8e7");
   b = apint_create_from_hex("6190496725a798c966df1638b83b4c67493be375");
@@ -327,7 +346,28 @@ void testAdd(TestObjs *objs) {
   apint_destroy(sum);
   apint_destroy(b);
   apint_destroy(a);
-  free(s);   
+  free(s); 
+  
+  a = apint_create_from_hex("4edcdf339283");
+  b = apint_create_from_hex("-2CBF");
+  sum = apint_add(a, b);
+  ASSERT(0 == strcmp("4EDCDF338FB75",
+		     (s = apint_format_as_hex(sum))));
+  apint_destroy(sum);
+  apint_destroy(b);
+  apint_destroy(a);
+  free(s); 
+
+  
+  a = apint_create_from_hex("abdd4433");
+  b = apint_create_from_hex("-7eeaf44444444");
+  sum = apint_add(a, b);
+  ASSERT(0 == strcmp("-7eeae98670011",
+		     (s = apint_format_as_hex(sum))));
+  apint_destroy(sum);
+  apint_destroy(b);
+  apint_destroy(a);
+  free(s);     
 }
 
 void testSub(TestObjs *objs) {
@@ -393,4 +433,62 @@ void testSub(TestObjs *objs) {
   apint_destroy(b);
   apint_destroy(a);
   free(s);
+  
+  a = apint_create_from_hex("6ffc4d9d8e7");
+  b = apint_create_from_hex("-6190496725a798c966df1638b83b4c67493be375");
+  diff = apint_sub(a, b);
+  ASSERT(0 == strcmp("6190496725a798c966df1638b83b53670e15bc5c",
+		     (s = apint_format_as_hex(diff))));
+  apint_destroy(diff);
+  apint_destroy(b);
+  apint_destroy(a);
+  free(s); 
+  
+  a = apint_create_from_hex("4edcdf339283");
+  b = apint_create_from_hex("2CBF");
+  diff = apint_sub(a, b);
+  ASSERT(0 == strcmp("4EDCDF338FB75",
+		     (s = apint_format_as_hex(diff))));
+  apint_destroy(diff);
+  apint_destroy(b);
+  apint_destroy(a);
+  free(s); 
+
+  
+  a = apint_create_from_hex("abdd4433");
+  b = apint_create_from_hex("7eeaf44444444");
+  diff = apint_add(a, b);
+  ASSERT(0 == strcmp("-7eeae98670011",
+		     (s = apint_format_as_hex(diff))));
+  apint_destroy(diff);
+  apint_destroy(b);
+  apint_destroy(a);
+  free(s);     
+
 }
+/*
+void testlShift(objs) {
+  ApInt *a, *shift;
+  a = apint_create_from_hex("3");
+  shift = apint_lshift(a);
+  ASSERT(0 == strcmp("6", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s);     
+  
+  a = apint_create_from_hex("2eedccd4453");
+  shift = apint_lshift(a, 4);
+  ASSERT(0 == strcmp("2eedccd44530", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s); 
+  
+   a = apint_create_from_hex("-7eefccd22445099");
+  shift = apint_lshift(a, 15);
+  ASSERT(0 == strcmp("-3F77E669122284C8000", (s = apint_format_as_hex(shift))));
+  apint_destroy(shift);
+  apint_destroy(a);
+  free(s); 
+
+}
+*/
