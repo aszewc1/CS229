@@ -283,6 +283,7 @@ ApInt *apint_copy(const ApInt *ap) {
   new->data = realloc(new->data, ap->len * sizeof(uint64_t));
   assert(new->data);
   new->len = ap->len;
+  new->sign = ap->sign;
   uint64_t * old = ap->data;
   uint64_t * now = new->data;
   for(int i = 0; (uint64_t) i < ap->len; i++) {
@@ -320,19 +321,31 @@ ApInt *apint_lshift(ApInt *ap) {
 
 /* Shifts ApInt left by given number of bits */
 ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
+  ApInt *a = apint_copy(ap);
+  int shift = n % 64;
+  int pow = n / 64;
   uint64_t carry = 0UL;
-  for(int i = 0; (uint64_t) i < ap->len; i++) {
-    uint64_t val = ap->data[i];
-    ap->data[i] = val << n;
-    ap->data[i] += carry;
-    carry = val & (~0UL << n);
+  for(int i = 0; (uint64_t) i < a->len; i++) {
+    uint64_t val = a->data[i];
+    a->data[i] = val << shift;
+    a->data[i] += carry;
+    carry = (val & (~0UL << (64-shift))) >> (64-shift);
   }
 
   if (carry != 0) {
-    ap->data = realloc(ap->data, (ap->len + 1) * sizeof(uint64_t));
-    ap->data[ap->len] = carry;
-    ap->len += 1; // expansion of length as appropriate
+    a->data = realloc(a->data, (a->len + 1) * sizeof(uint64_t));
+    a->data[a->len] = carry;
+    a->len += 1; // expansion of length as appropriate
+  }
+
+  if(pow > 0) {
+    a->data = realloc(a->data, (a->len + pow) * sizeof(uint64_t));
+    for(int i = a->len - 1; i >= pow; i--) {
+      a->data[i] = a->data[i-pow];
+      a->data[i-pow] = 0UL;
+    }
+    a->len += pow;
   }
   
-  return ap;
+  return a;
 }
