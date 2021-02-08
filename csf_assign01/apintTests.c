@@ -143,7 +143,7 @@ void testCreateFromHex(TestObjs * objs) {
   ASSERT(-10029983454ULL == apint_get_bits(objs->apHexNeg, 0));
 
   a = apint_create_from_hex("-17C86B7710C154");
-  ASSERT(-6694288348987732 == apint_get_bits(a, 0));
+  ASSERT(-6694288348987732LL == apint_get_bits(a, 0));
   apint_destroy(a);
  // ASSERT(9671406556917033397649408 == apint_get_bits(objs->apHexLarge1, 0));
 }
