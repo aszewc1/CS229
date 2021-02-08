@@ -29,21 +29,23 @@ ApInt *apint_create_from_u64(uint64_t val) {
 ApInt *apint_create_from_hex(const char *hex) {
   ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
   assert(ap);
-  ap->data = malloc(sizeof(uint64_t)); //allocates memory for data values
+  if(hex[0] == '-') { ap->sign = 1; hex++; }
+  else { ap->sign = 0; }
+  int len = ((strlen(hex) * 4) + 63) / 64;
+  ap->data = malloc(len * sizeof(uint64_t)); //allocates memory for data values
   assert(ap->data);
-  char *endpt;
-  size_t hexSize = strlen(hex); 
-  int xSize = (int) hexSize;
+  ap->len = len;
   /*strtoull converts string to unsigned long long (uint64_t) 
    *16 used as base for hexadecimals. 
    */
-  *(ap->data) = strtoull(hex, &endpt, 16); 
-  printf("%llu\n", *ap->data);
-  ap->len = 1;
-  if (*ap->data < 0) {
-    ap->sign = 1;
+  for(int i = 0; i < len; i++) {
+    char temp [17]; // temp data block
+    int source = (i == len - 1) ? 0 : (int) strlen(hex) - (16 * (i+1));
+    int bytes = (i == len - 1) ? (int) strlen(hex) % 16 : 16;
+    memcpy(temp, hex+source, bytes);
+    temp[bytes] = '\0';
+    ap->data[i] = strtoul(temp, NULL, 16);
   }
-  ap->sign = 0;
   return ap;
 }
 
@@ -99,21 +101,20 @@ int apint_highest_bit_set(const ApInt *ap) {
 
 /* Format uint64_t data into hex*/
 char *apint_format_as_hex(const ApInt *ap) {
-  int n = ap->len;
-  char *result = malloc(n*(sizeof(uint64_t)) * 2); //allocates memory, *2 since 4 bit per char
-  //char *temp = malloc(n * (sizeof(uint64_t)) * 2);;
-  //while (n > 0) {
-  if (!apint_is_negative(ap)) {
-    sprintf(result, "%llx",*ap->data);
-  } 
-  else {
-    sprintf(result, "%llx",*ap->data);
+  // worst-case allocation that all bits are set and negative
+  char * result = malloc((ap->len * 16 + 2) * sizeof(char));
+  if(apint_is_negative(ap)) { strcpy(result, "-"); }
+  else { strcpy(result, ""); }
+  char temp [17];
+  for(int i = (int) ap->len - 1; i >=0; i--) {
+    if(i == (int) ap->len - 1) {
+      sprintf(temp, "%lx", ap->data[i]);
+    }
+    else { sprintf(temp, "%016lx", ap->data[i]); }
+    //printf("%s ", temp);
+    strcat(result, temp);
   }
-  //n--;
-  printf("%s\n", result);
-  //strcat(result, temp);
-  //}
-  
+  //printf("\nResult: %s\n", result);
   return result;
 }
 

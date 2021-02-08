@@ -61,14 +61,14 @@ int main(int argc, char **argv) {
 
 	TEST(testCreateFromU64); // tests for negative & zero throughout
 	TEST(testCreateFromHex);
-   TEST(testHighestBitSet);
+	TEST(testHighestBitSet);
 	TEST(testCompare);
 	TEST(testAddNoHex);
 	TEST(testSubNoHex);
 	TEST(testFormatAsHex);
 	TEST(testAdd);
 	TEST(testSub);
-
+	
 	TEST_FINI();
 }
 
@@ -291,8 +291,8 @@ void testAdd(TestObjs *objs) {
   free(s);
 	
   /* 110660361 + 11204 = 110,671,565*/
-  sum = apint_add(objs->max1, objs->ap1);
-  ASSERT(0 == strcmp("110671565", (s = apint_format_as_hex(sum))));
+  sum = apint_add(objs->ap110660361, objs->ap11204);
+  ASSERT(0 == strcmp("698b6cd", (s = apint_format_as_hex(sum))));
   apint_destroy(sum);
   free(s);
    
