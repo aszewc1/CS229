@@ -312,3 +312,9 @@ uint64_t apint_resize(ApInt *a, ApInt *b) {
     return b->len;
   }
 }
+
+ApInt *apint_lshift(ApInt *ap) {
+}
+
+ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
+}

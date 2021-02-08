@@ -42,6 +42,8 @@ typedef struct {
   int apint_compare(const ApInt *left, const ApInt *right);
   ApInt *apint_copy(const ApInt *ap);
   uint64_t apint_resize(ApInt *a, ApInt *b);
+  ApInt *apint_lshift(ApInt *ap);
+  ApInt *apint_lshift_n(ApInt *ap, unsigned n);
 
 #ifdef __cplusplus
 }
