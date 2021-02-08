@@ -13,6 +13,7 @@ Alexandra Szewc		aszewc1
 - helped comment code
 - wrote create_from_hex and format_as_hex
 - fixed memory leaks resulting from resize method
+- wrote bonus functions
 
 Victor Wen		vwen2
 - helped debug

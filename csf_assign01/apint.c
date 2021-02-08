@@ -315,7 +315,7 @@ uint64_t apint_resize(ApInt *a, ApInt *b) {
 
 /* Shifts ApInt left by one bit, calls apint_lshift_n */
 ApInt *apint_lshift(ApInt *ap) {
-  return apint_lshift_n(ap);
+  return apint_lshift_n(ap, 1);
 }
 
 /* Shifts ApInt left by given number of bits */
