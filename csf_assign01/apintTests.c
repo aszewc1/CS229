@@ -33,6 +33,7 @@ typedef struct {
   ApInt *apADD;
   ApInt *apHex20;
   ApInt *apHex174281552;
+  ApInt *apHex0;
 } TestObjs;
 
 TestObjs *setup(void);
@@ -86,6 +87,7 @@ TestObjs *setup(void) {
   objs->apADD = apint_add(objs->apCARRY, objs->apCARRY);
   objs->apHex20 = apint_create_from_hex("14");
   objs->apHex174281552 = apint_create_from_hex("174281552");
+  objs->apHex0 = apint_create_from_hex("0");
   return objs;
 }
 
@@ -102,6 +104,7 @@ void cleanup(TestObjs *objs) {
   apint_destroy(objs->apADD);
   apint_destroy(objs->apHex20);
   apint_destroy(objs->apHex174281552);
+  apint_destroy(objs->apHex0);
   free(objs);
 }
 
@@ -123,6 +126,8 @@ void testCreateFromU64(TestObjs *objs) {
 void testCreateFromHex(TestObjs * objs) {
   ASSERT(20UL == apint_get_bits(objs->apHex20, 0));
   ASSERT(6243751250ULL == apint_get_bits(objs->apHex174281552, 0));
+  ASSERT(0 == apint_get_bits(objs->apHex0, 0));
+  ASSERT(apint_is_zero(objs->apHex0));
 }
 
 void testHighestBitSet(TestObjs *objs) {
