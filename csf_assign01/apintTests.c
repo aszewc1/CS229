@@ -141,8 +141,15 @@ void testCreateFromHex(TestObjs * objs) {
   ASSERT(6243751250ULL == apint_get_bits(objs->apHex174281552, 0));
   ASSERT(0 == apint_get_bits(objs->apHex0, 0));
   ASSERT(apint_is_zero(objs->apHex0));
+  ASSERT(!apint_is_negative(objs->apHex0));
   ASSERT(6694288348987732UL == apint_get_bits(objs->apHex6694288348987732, 0));
   ASSERT(10029983454UL == apint_get_bits(objs->apHexNeg, 0));
+
+  a = apint_create_from_hex("-0000"); // mixed cases
+  ASSERT(0 == apint_get_bits(a, 0));
+  ASSERT(!apint_is_negative(a));
+  ASSERT(apint_is_zero(a));
+  apint_destroy(a);
 
   a = apint_create_from_hex("-17c86B7710C154"); // mixed cases
   ASSERT(6694288348987732 == apint_get_bits(a, 0));
@@ -183,6 +190,8 @@ void testCompare(TestObjs *objs) {
   ASSERT(apint_compare(objs->ap0, objs->ap110660361) < 0);
   /* 1 < 110660361 */
   ASSERT(apint_compare(objs->ap1, objs->ap110660361) < 0);
+
+  ASSERT(apint_compare(objs->ap0, objs->apHex0) == 0);  
    
    /* larger cases */
    ApInt *a = apint_create_from_hex("5b6a7d127b4007e7b95a2e0b6f9c281ebafc45911b348a28015d811d335b5909c939f2b6986e409f");
@@ -267,10 +276,15 @@ void testSubNoHex(TestObjs *objs) {
 }
 
 void testFormatAsHex(TestObjs *objs) {
-  char *s;
+  char *s; ApInt *a;
   
   ASSERT(0 == strcmp("0", (s = apint_format_as_hex(objs->ap0))));
   free(s);
+
+  a = apint_create_from_hex("-0000");
+  ASSERT(0 == strcmp("0", (s = apint_format_as_hex(a))));
+  free(s);
+  apint_destroy(a);
 
   ASSERT(0 == strcmp("1", (s = apint_format_as_hex(objs->ap1))));
   free(s);

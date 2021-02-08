@@ -46,6 +46,7 @@ ApInt *apint_create_from_hex(const char *hex) {
     temp[bytes] = '\0';
     ap->data[i] = strtoul(temp, NULL, 16);
   }
+  if(apint_is_zero(ap)) { ap->sign = 0; }
   return ap;
 }
 
