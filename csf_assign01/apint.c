@@ -29,8 +29,6 @@ ApInt *apint_create_from_u64(uint64_t val) {
 ApInt *apint_create_from_hex(const char *hex) {
   ApInt * ap = malloc(sizeof(ApInt)); //allocates memory
   assert(ap);
-  if(hex[0] == '-') { ap->sign = 1; hex++; }
-  else { ap->sign = 0; }
   int len = ((strlen(hex) * 4) + 63) / 64;
   ap->data = malloc(len * sizeof(uint64_t)); //allocates memory for data values
   assert(ap->data);
@@ -45,6 +43,12 @@ ApInt *apint_create_from_hex(const char *hex) {
     memcpy(temp, hex+source, bytes);
     temp[bytes] = '\0';
     ap->data[i] = strtoul(temp, NULL, 16);
+  }
+  //check for sign
+  if (ap->data[len] < 0) {
+   ap->sign = 1;
+  } else {
+   ap->sign = 0;
   }
   return ap;
 }
@@ -108,7 +112,7 @@ char *apint_format_as_hex(const ApInt *ap) {
   char temp [17];
   for(int i = (int) ap->len - 1; i >=0; i--) {
     if(i == (int) ap->len - 1) {
-      sprintf(temp, "%lx", ap->data[i]);
+      sprintf(temp, "%llx", ap->data[i]);
     }
     else { sprintf(temp, "%016lx", ap->data[i]); }
     //printf("%s ", temp);
@@ -173,6 +177,7 @@ ApInt *apint_add(const ApInt *a, const ApInt *b) {
   }
   
   apint_destroy(inc);
+  //printf("%s\n", apint_format_as_hex(sum));
   return sum;
 }
 
@@ -228,6 +233,7 @@ ApInt *apint_sub(const ApInt *a, const ApInt *b) {
   if (apint_is_zero(sub)) { sub->sign = 0; }
   sub->data = realloc(sub->data, sub->len * sizeof(uint64_t));
   apint_destroy(dec);
+  //printf("%s\n", apint_format_as_hex(sub));
   return sub;
 }
 
@@ -277,6 +283,31 @@ int apint_compare(const ApInt *left, const ApInt *right) {
   return 0;
 }
 
+/* Shifts ApInt left by one bit, calls apint_lshift_n */
+ApInt *apint_lshift(ApInt *ap) {
+  return apint_lshift_n(ap, 1);
+}
+
+/* Shifts ApInt left by given number of bits */
+ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
+  uint64_t carry = 0UL;
+  for(int i = 0; (uint64_t) i < ap->len; i++) {
+    uint64_t val = ap->data[i];
+    ap->data[i] = val << n;
+    ap->data[i] += carry;
+    carry = val & (~0UL << n);
+  }
+
+  if (carry != 0) {
+    ap->data = realloc(ap->data, (ap->len + 1) * sizeof(uint64_t));
+    ap->data[ap->len] = carry;
+    ap->len += 1; // expansion of length as appropriate
+  }
+  
+  return ap;
+}
+
+
 /* method to duplicate ApInt object */
 ApInt *apint_copy(const ApInt *ap) {
   ApInt * new = apint_create_from_u64(0UL);
@@ -311,28 +342,4 @@ uint64_t apint_resize(ApInt *a, ApInt *b) {
     a->len = b->len;
     return b->len;
   }
-}
-
-/* Shifts ApInt left by one bit, calls apint_lshift_n */
-ApInt *apint_lshift(ApInt *ap) {
-  return apint_lshift_n(ap, 1);
-}
-
-/* Shifts ApInt left by given number of bits */
-ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
-  uint64_t carry = 0UL;
-  for(int i = 0; (uint64_t) i < ap->len; i++) {
-    uint64_t val = ap->data[i];
-    ap->data[i] = val << n;
-    ap->data[i] += carry;
-    carry = val & (~0UL << n);
-  }
-
-  if (carry != 0) {
-    ap->data = realloc(ap->data, (ap->len + 1) * sizeof(uint64_t));
-    ap->data[ap->len] = carry;
-    ap->len += 1; // expansion of length as appropriate
-  }
-  
-  return ap;
 }
