@@ -144,11 +144,23 @@ void testCreateFromHex(TestObjs * objs) {
   ASSERT(!apint_is_negative(objs->apHex0));
   ASSERT(6694288348987732UL == apint_get_bits(objs->apHex6694288348987732, 0));
   ASSERT(10029983454UL == apint_get_bits(objs->apHexNeg, 0));
+  ASSERT(apint_is_negative(objs->apHexNeg));
 
-  a = apint_create_from_hex("-0000"); // mixed cases
+  a = apint_create_from_hex("-0000");
   ASSERT(0 == apint_get_bits(a, 0));
   ASSERT(!apint_is_negative(a));
   ASSERT(apint_is_zero(a));
+  apint_destroy(a);
+
+  a = apint_create_from_hex("-F");
+  ASSERT(15 == apint_get_bits(a, 0));
+  ASSERT(apint_is_negative(a));
+  apint_destroy(a);
+  
+  a = apint_create_from_hex("-0000101");
+  ASSERT(257 == apint_get_bits(a, 0));
+  ASSERT(apint_is_negative(a));
+  ASSERT(!apint_is_zero(a));
   apint_destroy(a);
 
   a = apint_create_from_hex("-17c86B7710C154"); // mixed cases
@@ -158,6 +170,8 @@ void testCreateFromHex(TestObjs * objs) {
 
   a = apint_create_from_hex("-7FfFffFffFfFfffFfFeE1");
   ASSERT(strcmp("-7fffffffffffffffffee1", (s = apint_format_as_hex(a))) == 0);
+  ASSERT(18446744073709551329UL == apint_get_bits(a, 0));
+  ASSERT(524287UL == apint_get_bits(a, 1));
   apint_destroy(a);
   free(s);
   
