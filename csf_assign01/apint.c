@@ -112,7 +112,7 @@ char *apint_format_as_hex(const ApInt *ap) {
   char temp [17];
   for(int i = (int) ap->len - 1; i >=0; i--) {
     if(i == (int) ap->len - 1) {
-      sprintf(temp, "%llx", ap->data[i]);
+      sprintf(temp, "%lx", ap->data[i]);
     }
     else { sprintf(temp, "%016lx", ap->data[i]); }
     //printf("%s ", temp);
