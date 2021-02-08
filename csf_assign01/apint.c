@@ -313,8 +313,26 @@ uint64_t apint_resize(ApInt *a, ApInt *b) {
   }
 }
 
+/* Shifts ApInt left by one bit, calls apint_lshift_n */
 ApInt *apint_lshift(ApInt *ap) {
+  return apint_lshift_n(ap);
 }
 
+/* Shifts ApInt left by given number of bits */
 ApInt *apint_lshift_n(ApInt *ap, unsigned n) {
+  uint64_t carry = 0UL;
+  for(int i = 0; (uint64_t) i < ap->len; i++) {
+    uint64_t val = ap->data[i];
+    ap->data[i] = val << n;
+    ap->data[i] += carry;
+    carry = val & (~0UL << n);
+  }
+
+  if (carry != 0) {
+    ap->data = realloc(ap->data, (ap->len + 1) * sizeof(uint64_t));
+    ap->data[ap->len] = carry;
+    ap->len += 1; // expansion of length as appropriate
+  }
+  
+  return ap;
 }
