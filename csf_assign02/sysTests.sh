@@ -1,3 +1,6 @@
+# aszewc1
+# vwen2
+
 #! /usr/bin/env bash
 
 # System tests for postfix calculator (can test both C and asm versions)
