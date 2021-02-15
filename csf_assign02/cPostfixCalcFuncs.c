@@ -25,7 +25,8 @@ long addPositive(long a, long b) {
  *   msg - description of the error which occurred
  */
 void fatalError(const char *msg) {
-  /* TODO: implement */
+  printf("Error: %s\n", msg);
+  exit(1);
 }
 
 /*
@@ -42,7 +43,7 @@ void fatalError(const char *msg) {
  *   spaces and tabs)
  */
 int isSpace(int c) {
-  /* TODO: implement */
+  return (c == 9 || c == 32 || c == 13 || c == 10);
 }
 
 /*
@@ -56,7 +57,7 @@ int isSpace(int c) {
  *   1 if c is a digit, 0 otherwise
  */
 int isDigit(int c) {
-  /* TODO: implement */
+  return ((c > 47) && (c < 58));
 }
 
 /*
@@ -72,7 +73,9 @@ int isDigit(int c) {
  *   is reached
  */
 const char *skipws(const char *s) {
-  /* TODO: implement */
+  while (*s != '\0' && isSpace(*s)) s++;
+  if (*s == '\0') return NULL;
+  return (*s);
 }
 
 /*
@@ -84,10 +87,12 @@ const char *skipws(const char *s) {
  *       space characters)
  *
  * Returns:
- *   the token type
+ *   the token type (1, 0, -1) respectively
  */
 int tokenType(const char *s) {
-  /* TODO: implement */
+  if (isDigit(*s)) return 1;
+  if (*s == 43 || *s == 45 || *s == 42 || *s == 47) return 0;
+  return -1;
 }
 
 /*
@@ -106,7 +111,12 @@ int tokenType(const char *s) {
  *   pointer to the first character in the string that is not a digit
  */
 const char *consumeInt(const char *s, long *pval) {
-  /* TODO: implement */
+  while (isDigit(*s)) {
+    *pval *= 10;
+    *pval += *s;
+    s++;
+  }
+  return s;
 }
 
 /*
@@ -122,7 +132,8 @@ const char *consumeInt(const char *s, long *pval) {
  *   a pointer to the second character of s
  */
 const char *consumeOp(const char *s, int *op) {
-  /* TODO: implement */
+  *op = *s;
+  return ++s;
 }
 
 /*
@@ -142,7 +153,8 @@ const char *consumeOp(const char *s, int *op) {
  *   nothing
  */
 void stackPush(long stack[], long *count, long val) {
-  /* TODO: implement */
+  if (*count >= MAX_STACK) fatalError("Stack is full");
+  stack[(*count)++] = val;
 }
 
 /*
@@ -160,7 +172,8 @@ void stackPush(long stack[], long *count, long val) {
  *   the value popped from the stack
  */
 long stackPop(long stack[], long *count) {
-  /* TODO: implement */
+  if (*count <= 0) fatalError("Stack is empty");
+  return stack[(*count)--];
 }
 
 /*
@@ -175,5 +188,16 @@ long stackPop(long stack[], long *count) {
  *   the result of applying the operator to the operands
  */
 long evalOp(int op, long left, long right) {
-  /* TODO: implement */
+  switch (op) {
+    case 43:
+      return left + right;
+    case 45:
+      return left - right;
+    case 42:
+      return left * right;
+    case 47:
+      return left / right;
+    default:
+      return -1;
+  }
 }
