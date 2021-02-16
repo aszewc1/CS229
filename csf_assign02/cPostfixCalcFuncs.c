@@ -75,7 +75,7 @@ int isDigit(int c) {
 const char *skipws(const char *s) {
   while (*s != '\0' && isSpace(*s)) s++;
   if (*s == '\0') return NULL;
-  return (*s);
+  return s;
 }
 
 /*
@@ -90,9 +90,9 @@ const char *skipws(const char *s) {
  *   the token type (1, 0, -1) respectively
  */
 int tokenType(const char *s) {
-  if (isDigit(*s)) return 1;
-  if (*s == 43 || *s == 45 || *s == 42 || *s == 47) return 0;
-  return -1;
+  if (isDigit(*s)) return TOK_INT;
+  if (*s == 43 || *s == 45 || *s == 42 || *s == 47) return TOK_OP;
+  return TOK_UNKNOWN;
 }
 
 /*
@@ -111,9 +111,10 @@ int tokenType(const char *s) {
  *   pointer to the first character in the string that is not a digit
  */
 const char *consumeInt(const char *s, long *pval) {
+  *pval = 0;
   while (isDigit(*s)) {
     *pval *= 10;
-    *pval += *s;
+    *pval += (*s - 48);
     s++;
   }
   return s;
@@ -173,7 +174,7 @@ void stackPush(long stack[], long *count, long val) {
  */
 long stackPop(long stack[], long *count) {
   if (*count <= 0) fatalError("Stack is empty");
-  return stack[(*count)--];
+  return stack[--(*count)];
 }
 
 /*

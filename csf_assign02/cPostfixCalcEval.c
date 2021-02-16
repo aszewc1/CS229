@@ -13,9 +13,38 @@
  *   the result of evaluating the expression
  */
 long eval(const char *s) {
-  /* TODO: implement */
+  long int stack[20];
+  long int count = 0;
 
-  /* Note: this function should be implemented by calling functions
-   * declared in cPostfixCalc.h and defined in cPostfixCalcFuncs.c
-   */
+  // read the string and push/pop values from stack to evaluate
+  s = skipws(s);
+  while (s != NULL) {
+    int tok = tokenType(s);
+    if (tok == TOK_INT) {
+      long int dat = 0;
+      s = consumeInt(s, &dat);
+      stackPush(stack, &count, dat);
+    }
+    else if (tok == TOK_OP) {
+      int op = 0;
+      s = consumeOp(s, &op);
+      
+      long int right = stackPop(stack, &count);
+      long int left = stackPop(stack, &count);
+      
+      long eval = evalOp(op, left, right);
+      
+      stackPush(stack, &count, eval);
+    }
+    else {
+      fatalError("Unknown token");
+    }
+    s = skipws(s);
+  }
+
+  if (count != 1) {
+    fatalError("Stack misaligned");
+  }
+
+  return stackPop(stack, &count);
 }
