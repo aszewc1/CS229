@@ -200,11 +200,11 @@ void testTokenType(TestObjs *objs) {
 	ASSERT(TOK_OP == tokenType("- 2 3"));
 	ASSERT(TOK_OP == tokenType("* 2 3"));
 	ASSERT(TOK_OP == tokenType("/ 2 3"));
-   ASSERT(!TOK_OP == tokenType("1 +"));
-   ASSERT(TOK_OP == tokenType("+ abe ??"));
+        ASSERT(TOK_OP != tokenType("1 +"));
+        ASSERT(TOK_OP == tokenType("+ abe ??"));
 	ASSERT(TOK_UNKNOWN == tokenType("abc"));
 	ASSERT(TOK_UNKNOWN == tokenType("?"));
-   ASSERT(TOK_UNKNOWN == tokenType(".1"));
+        ASSERT(TOK_UNKNOWN == tokenType(".1"));
 }
 
 void testConsumeInt(TestObjs *objs) {
