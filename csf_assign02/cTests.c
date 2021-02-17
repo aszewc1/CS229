@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
 void testAddPositive(TestObjs *obj) {
 	ASSERT(2L == addPositive(1L, 1L));
 	ASSERT(23L == addPositive(15L, 8L));
+   ASSERT(296L == addPositive(96L, 200L));
 }
 
 /*
@@ -162,6 +163,7 @@ void testIsSpace(TestObjs *objs) {
 	ASSERT(!isSpace('3'));
 	ASSERT(!isSpace('+'));
 	ASSERT(!isSpace('a'));
+   ASSERT(!isSpace('*'));
 }
 
 void testIsDigit(TestObjs *objs) {
@@ -187,6 +189,8 @@ void testSkipws(TestObjs *objs) {
 	ASSERT(0 == strcmp("abc", skipws("     abc")));
 	ASSERT(0 == strcmp("abc", skipws("\t\t\t\tabc")));
 	ASSERT(0 == strcmp("abc", skipws(" \tabc")));
+   ASSERT(0 == strcmp("a bc 4", skipws("a bc 4")));
+   ASSERT(0 == strcmp("a bc tuee", skipws("\t\t\t\t  a bc tuee")));
 }
 
 void testTokenType(TestObjs *objs) {
@@ -196,8 +200,11 @@ void testTokenType(TestObjs *objs) {
 	ASSERT(TOK_OP == tokenType("- 2 3"));
 	ASSERT(TOK_OP == tokenType("* 2 3"));
 	ASSERT(TOK_OP == tokenType("/ 2 3"));
+   ASSERT(!TOK_OP == tokenType("1 +"));
+   ASSERT(TOK_OP == tokenType("+ abe ??"));
 	ASSERT(TOK_UNKNOWN == tokenType("abc"));
 	ASSERT(TOK_UNKNOWN == tokenType("?"));
+   ASSERT(TOK_UNKNOWN == tokenType(".1"));
 }
 
 void testConsumeInt(TestObjs *objs) {
@@ -206,6 +213,13 @@ void testConsumeInt(TestObjs *objs) {
 	ASSERT(2L == val);
 	ASSERT(0 == strcmp(" 456 -", consumeInt("123 456 -", &val)));
 	ASSERT(123L == val);
+   ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
+	ASSERT(10023L == val);
+   ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
+	ASSERT(10023L == val);
+   ASSERT(0 == strcmp("+", consumeInt("+", &val)));
+   ASSERT(0L == val);
+
 }
 
 void testConsumeOp(TestObjs *objs) {
@@ -219,6 +233,12 @@ void testConsumeOp(TestObjs *objs) {
 	ASSERT('*' == op);
 	ASSERT(0 == strcmp(" 3", consumeOp("/ 3", &op)));
 	ASSERT('/' == op);
+   ASSERT(0 == strcmp("*-/+ 3 5", consumeOp("**-/+ 3 5", &op)));
+	ASSERT('*' == op);
+   /*ASSERT(0 == strcmp("998 9 + 3", consumeOp("998 9 + 3", &op)));
+	ASSERT(' ' == op);
+   ASSERT(0 == strcmp(" as3", consumeOp("/ as3", &op)));
+	ASSERT('/' == op);*/
 }
 
 void testPush(TestObjs *objs) {
@@ -232,6 +252,9 @@ void testPush(TestObjs *objs) {
 	stackPush(objs->values, &objs->count, 789L);
 	ASSERT(3 == objs->count);
 	ASSERT(789L == objs->values[2]);
+   stackPush(objs->values, &objs->count, 4L);
+   ASSERT(4 == objs->count);
+	ASSERT(4L == objs->values[3]);
 }
 
 void testPushFull(TestObjs *objs) {
@@ -268,9 +291,14 @@ void testPop(TestObjs *objs) {
 
 void testEvalOp(TestObjs *objs) {
 	ASSERT(3L == evalOp('+', 1L, 2L));
+   ASSERT(5040L == evalOp('*', 56L, 90L));
 	ASSERT(-10L == evalOp('-', 3L, 13L));
 	ASSERT(77L == evalOp('*', 11L, 7L));
 	ASSERT(3 == evalOp('/', 17L, 5L));
+   ASSERT(0L == evalOp('+', 0L, 0L));
+   ASSERT(0L == evalOp('/', 30L, 1000L));
+   ASSERT(1746L == evalOp('/', 99542L, 57L));
+   ASSERT(-5888500L == evalOp('-', 51L, 5888551L));
 }
 
 void testEval(TestObjs *objs) {
@@ -279,9 +307,14 @@ void testEval(TestObjs *objs) {
 	ASSERT(3L == eval("4 1 -"));
 	ASSERT(33L == eval("11 3 *"));
 	ASSERT(27L == eval("3 4 5 + *"));
+   ASSERT(2L == eval("4 2 /"));
 
 	/* make sure eval can handle arbitrary whitespace */
 	ASSERT(6L == eval("  1  \t 5\t\t + \t"));
+   ASSERT(9L == eval("  1  \t 5 3\t\t ++ \t"));
+   ASSERT(0L == eval("  1  115\t 9\t 3 5 +* -/ \t")); 
+   ASSERT(0L == eval("  1  \t 115\t 9\t 3 58 90 20034 5 +* -- ++/ \t")); 
+   ASSERT(29L == eval("  200000  \t 115\t 9\t 3 58 90 25 + * - - + / \t"));
 }
 
 void testEvalInvalid(TestObjs *objs) {
@@ -304,4 +337,13 @@ void testEvalInvalid(TestObjs *objs) {
 		/* good, expected failure */
 		printf("good, stack underflow handled...");
 	}
+   /* operator with insufficient operands */
+	if (sigsetjmp(exitBuf, 1) == 0) {
+		eval("**+");
+		FAIL("stack underflow not handled");
+	} else {
+		/* good, expected failure */
+		printf("good, stack underflow handled...");
+	}
+
 }
