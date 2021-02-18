@@ -7,9 +7,9 @@
 
 # Check usage
 if [ $# -ne 1 ]; then
-	echo "Usage: ./sysTests.sh <exe name>"
-	echo "  <exeName> should be './cPostfixCalc' or './asmPostfixCalc'"
-	exit 1
+    echo "Usage: ./sysTests.sh <exe name>"
+    echo "  <exeName> should be './cPostfixCalc' or './asmPostfixCalc'"
+    exit 1
 fi
 
 # Get the executable to test
@@ -21,23 +21,23 @@ numAttempted=0
 
 # Function testing that a postfix expression yields the expected result
 expect() {
-	local expected="$1"
-	local expr="$2"
+    local expected="$1"
+    local expr="$2"
 
-	if ./runTest.rb "$exe" "$expected" "$expr"; then
-		numPassed=$(expr $numPassed + 1)
-	fi
-	numAttempted=$(expr $numAttempted + 1)
+    if ./runTest.rb "$exe" "$expected" "$expr"; then
+        numPassed=$(expr $numPassed + 1)
+    fi
+    numAttempted=$(expr $numAttempted + 1)
 }
 
 # Function testing that an invalid postfix expression yields an error
 expect_error() {
-	local expr="$1"
+    local expr="$1"
 
-	if ./runTest.rb "$exe" "ERROR" "$expr"; then
-		numPassed=$(expr $numPassed + 1)
-	fi
-	numAttempted=$(expr $numAttempted + 1)
+    if ./runTest.rb "$exe" "ERROR" "$expr"; then
+        numPassed=$(expr $numPassed + 1)
+    fi
+    numAttempted=$(expr $numAttempted + 1)
 }
 
 #######################################################################
@@ -63,6 +63,10 @@ expect_error '2 3 + 4'
 # More tests
 expect 20 '1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 + + + + + + + + + + + + + + + + + + +'
 expect_error '1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 + + + + + + + + + + + + + + + + + + + +'
+expect_error '2 3 44 5 6 9 + + + + + 1'
+expect_error '2 3 44 5 6 9 + + + + 1 2 -'
+expect 100594 '2 20 * 2 / 3 / 4 + 3 20 * * 6 + 15 - 100003 40 54 / + +'
+expect_error '1 - - 4 5'
 expect_error ''
 expect_error '-'
 expect 3 '3'
@@ -77,7 +81,8 @@ expect 10 '6 9 34 2 /+-20+69*420 42 /+'
 # Summarize results
 echo "$numPassed/$numAttempted tests passed"
 if [ $numPassed -eq $numAttempted ]; then
-	exit 0
+    exit 0
 else
-	exit 1
+    exit 1
 fi
+
