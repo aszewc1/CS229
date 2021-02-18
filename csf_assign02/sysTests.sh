@@ -49,7 +49,26 @@ expect 42 '6 7 *'
 expect 42 '6 6 6 6 6 6 6 + + + + + +'
 expect_error '2 2'
 expect_error '1 *'
-# TODO: add more tests...
+
+# Given on assignment page
+expect 2 '1 1 +'
+expect 5 '7 2 -'
+expect 27 '3 4 5 + *'
+expect 5 '17 3 /'
+expect 0 '3 10 /'
+expect -12 '2 3 4 5 +-*'
+expect_error '10 2 - *'
+expect_error '2 3 + 4'
+
+# More tests
+expect 20 '1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 + + + + + + + + + + + + + + + + + + +'
+expect_error '1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 + + + + + + + + + + + + + + + + + + + +'
+expect_error ''
+expect_error '-'
+expect 3 '3'
+expect -100 '0 5 105 15 0   75 0 1 2 3 *
+- -/  -+  + -+'
+expect 10 '6 9 34 2 /+-20+69*420 42 /+'
 
 #######################################################################
 # End of tests

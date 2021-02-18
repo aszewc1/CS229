@@ -12,28 +12,28 @@
 #include "cPostfixCalc.h"
 
 typedef struct {
-	/* TODO: add fields for test fixture */
-
-	/* representation of operand stack */
-	long values[MAX_STACK];
-	long count;
+  /* TODO: add fields for test fixture */
+  
+  /* representation of operand stack */
+  long values[MAX_STACK];
+  long count;
 } TestObjs;
 
 TestObjs *setup(void) {
-	TestObjs *objs = malloc(sizeof(TestObjs));
-
-	/* TODO: initialize test fixture */
-
-	/* stack is initially empty */
-	objs->count = 0;
-
-	return objs;
+  TestObjs *objs = malloc(sizeof(TestObjs));
+  
+  /* TODO: initialize test fixture */
+  
+  /* stack is initially empty */
+  objs->count = 0;
+  
+  return objs;
 }
 
 void cleanup(TestObjs *objs) {
-	/* TODO: do any cleanup needed for test fixture */
-
-	free(objs);
+  /* TODO: do any cleanup needed for test fixture */
+  
+  free(objs);
 }
 
 /*
@@ -69,13 +69,13 @@ sigjmp_buf exitBuf;
  * current test.
  */
 void exit(int exitCode) {
-	if (expectedExit) {
-		/* jump back to test function */
-		siglongjmp(exitBuf, 1);
-	} else {
-		/* exit called unexpectedly, fail the test */
-		FAIL("Unexpected exit");
-	}
+  if (expectedExit) {
+    /* jump back to test function */
+    siglongjmp(exitBuf, 1);
+  } else {
+    /* exit called unexpectedly, fail the test */
+    FAIL("Unexpected exit");
+  }
 }
 
 void on_complete(int numPassed, int numExecuted) {
@@ -90,44 +90,44 @@ void on_complete(int numPassed, int numExecuted) {
  * name is executed.
  */
 int main(int argc, char **argv) {
-	if (argc > 2) {
-		printf("Usage: %s [<test name>]\n", argv[0]);
-		return 1;
-	}
-
-	if (argc == 2) {
-		tctest_testname_to_execute = argv[1];
-	}
-
-	tctest_on_complete = on_complete;
-
-	TEST_INIT();
-
-	TEST(testAddPositive);
-	TEST(testAddPositiveInvalid);
-	TEST(testIsSpace);
-	TEST(testIsDigit);
-	TEST(testSkipws);
-	TEST(testTokenType);
-	TEST(testConsumeInt);
-	TEST(testConsumeOp);
-	TEST(testPush);
-	TEST(testPushFull);
-	TEST(testPop);
-	TEST(testEvalOp);
-	TEST(testEval);
-	TEST(testEvalInvalid);
-
-	TEST_FINI();
+  if (argc > 2) {
+    printf("Usage: %s [<test name>]\n", argv[0]);
+    return 1;
+  }
+  
+  if (argc == 2) {
+    tctest_testname_to_execute = argv[1];
+  }
+  
+  tctest_on_complete = on_complete;
+  
+  TEST_INIT();
+  
+  TEST(testAddPositive);
+  TEST(testAddPositiveInvalid);
+  TEST(testIsSpace);
+  TEST(testIsDigit);
+  TEST(testSkipws);
+  TEST(testTokenType);
+  TEST(testConsumeInt);
+  TEST(testConsumeOp);
+  TEST(testPush);
+  TEST(testPushFull);
+  TEST(testPop);
+  TEST(testEvalOp);
+  TEST(testEval);
+  TEST(testEvalInvalid);
+  
+  TEST_FINI();
 }
 
 /*
  * Example test function.
  */
 void testAddPositive(TestObjs *obj) {
-	ASSERT(2L == addPositive(1L, 1L));
-	ASSERT(23L == addPositive(15L, 8L));
-   ASSERT(296L == addPositive(96L, 200L));
+  ASSERT(2L == addPositive(1L, 1L));
+  ASSERT(23L == addPositive(15L, 8L));
+  ASSERT(296L == addPositive(96L, 200L));
 }
 
 /*
@@ -135,215 +135,214 @@ void testAddPositive(TestObjs *obj) {
  * input results in a call to the exit function.
  */
 void testAddPositiveInvalid(TestObjs *obj) {
-	/*
-	 * addPositive should call exit if either of its arguments is negative
-	 */
-
-	expectedExit = 1;
-
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		addPositive(-1L, 1L);
-		FAIL("addPositive with invalid first argument did not exit");
-	} else {
-		printf("addPositive exited, good...");
-	}
-
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		addPositive(1L, -1L);
-		FAIL("addPositive with invalid second argument did not exit");
-	} else {
-		printf("addPositive exited, good...");
-	}
+  /*
+   * addPositive should call exit if either of its arguments is negative
+   */
+  
+  expectedExit = 1;
+  
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    addPositive(-1L, 1L);
+    FAIL("addPositive with invalid first argument did not exit");
+  } else {
+    printf("addPositive exited, good...");
+  }
+  
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    addPositive(1L, -1L);
+    FAIL("addPositive with invalid second argument did not exit");
+  } else {
+    printf("addPositive exited, good...");
+  }
 }
 
 void testIsSpace(TestObjs *objs) {
-	ASSERT(isSpace(' '));
-	ASSERT(isSpace('\t'));
-	ASSERT(!isSpace('0'));
-	ASSERT(!isSpace('3'));
-	ASSERT(!isSpace('+'));
-	ASSERT(!isSpace('a'));
-   ASSERT(!isSpace('*'));
+  ASSERT(isSpace(' '));
+  ASSERT(isSpace('\t'));
+  ASSERT(!isSpace('0'));
+  ASSERT(!isSpace('3'));
+  ASSERT(!isSpace('+'));
+  ASSERT(!isSpace('a'));
+  ASSERT(!isSpace('*'));
 }
 
 void testIsDigit(TestObjs *objs) {
-	ASSERT(isDigit('0'));
-	ASSERT(isDigit('1'));
-	ASSERT(isDigit('2'));
-	ASSERT(isDigit('3'));
-	ASSERT(isDigit('4'));
-	ASSERT(isDigit('5'));
-	ASSERT(isDigit('6'));
-	ASSERT(isDigit('7'));
-	ASSERT(isDigit('8'));
-	ASSERT(isDigit('9'));
-	ASSERT(!isDigit(' '));
-	ASSERT(!isDigit('\t'));
-	ASSERT(!isDigit('a'));
+  ASSERT(isDigit('0'));
+  ASSERT(isDigit('1'));
+  ASSERT(isDigit('2'));
+  ASSERT(isDigit('3'));
+  ASSERT(isDigit('4'));
+  ASSERT(isDigit('5'));
+  ASSERT(isDigit('6'));
+  ASSERT(isDigit('7'));
+  ASSERT(isDigit('8'));
+  ASSERT(isDigit('9'));
+  ASSERT(!isDigit(' '));
+  ASSERT(!isDigit('\t'));
+  ASSERT(!isDigit('a'));
 }
 
 void testSkipws(TestObjs *objs) {
-	ASSERT(0 == strcmp("abc", skipws("abc")));
-	ASSERT(0 == strcmp("abc", skipws(" abc")));
-	ASSERT(0 == strcmp("abc", skipws("\tabc")));
-	ASSERT(0 == strcmp("abc", skipws("     abc")));
-	ASSERT(0 == strcmp("abc", skipws("\t\t\t\tabc")));
-	ASSERT(0 == strcmp("abc", skipws(" \tabc")));
-   ASSERT(0 == strcmp("a bc 4", skipws("a bc 4")));
-   ASSERT(0 == strcmp("a bc tuee", skipws("\t\t\t\t  a bc tuee")));
+  ASSERT(0 == strcmp("abc", skipws("abc")));
+  ASSERT(0 == strcmp("abc", skipws(" abc")));
+  ASSERT(0 == strcmp("abc", skipws("\tabc")));
+  ASSERT(0 == strcmp("abc", skipws("     abc")));
+  ASSERT(0 == strcmp("abc", skipws("\t\t\t\tabc")));
+  ASSERT(0 == strcmp("abc", skipws(" \tabc")));
+  ASSERT(0 == strcmp("a bc 4", skipws("a bc 4")));
+  ASSERT(0 == strcmp("a bc tuee", skipws("\t\t\t\t  a bc tuee")));
 }
 
 void testTokenType(TestObjs *objs) {
-	ASSERT(TOK_INT == tokenType("2 3 +"));
-	ASSERT(TOK_INT == tokenType("123 4 +"));
-	ASSERT(TOK_OP == tokenType("+ 2 3"));
-	ASSERT(TOK_OP == tokenType("- 2 3"));
-	ASSERT(TOK_OP == tokenType("* 2 3"));
-	ASSERT(TOK_OP == tokenType("/ 2 3"));
-        ASSERT(TOK_OP != tokenType("1 +"));
-        ASSERT(TOK_OP == tokenType("+ abe ??"));
-	ASSERT(TOK_UNKNOWN == tokenType("abc"));
-	ASSERT(TOK_UNKNOWN == tokenType("?"));
-        ASSERT(TOK_UNKNOWN == tokenType(".1"));
+  ASSERT(TOK_INT == tokenType("2 3 +"));
+  ASSERT(TOK_INT == tokenType("123 4 +"));
+  ASSERT(TOK_OP == tokenType("+ 2 3"));
+  ASSERT(TOK_OP == tokenType("- 2 3"));
+  ASSERT(TOK_OP == tokenType("* 2 3"));
+  ASSERT(TOK_OP == tokenType("/ 2 3"));
+  ASSERT(TOK_OP != tokenType("1 +"));
+  ASSERT(TOK_OP == tokenType("+ abe ??"));
+  ASSERT(TOK_UNKNOWN == tokenType("abc"));
+  ASSERT(TOK_UNKNOWN == tokenType("?"));
+  ASSERT(TOK_UNKNOWN == tokenType(".1"));
 }
 
 void testConsumeInt(TestObjs *objs) {
-	long val;
-	ASSERT(0 == strcmp(" 3 +", consumeInt("2 3 +", &val)));
-	ASSERT(2L == val);
-	ASSERT(0 == strcmp(" 456 -", consumeInt("123 456 -", &val)));
-	ASSERT(123L == val);
-   ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
-	ASSERT(10023L == val);
-   ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
-	ASSERT(10023L == val);
-   ASSERT(0 == strcmp("+", consumeInt("+", &val)));
-   ASSERT(0L == val);
-
+  long val;
+  ASSERT(0 == strcmp(" 3 +", consumeInt("2 3 +", &val)));
+  ASSERT(2L == val);
+  ASSERT(0 == strcmp(" 456 -", consumeInt("123 456 -", &val)));
+  ASSERT(123L == val);
+  ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
+  ASSERT(10023L == val);
+  ASSERT(0 == strcmp(" ab 10 +*", consumeInt("10023 ab 10 +*", &val)));
+  ASSERT(10023L == val);
+  ASSERT(0 == strcmp("+", consumeInt("+", &val)));
+  ASSERT(0L == val);
 }
 
 void testConsumeOp(TestObjs *objs) {
-	int op;
-
-	ASSERT(0 == strcmp(" 3", consumeOp("+ 3", &op)));
-	ASSERT('+' == op);
-	ASSERT(0 == strcmp(" 3", consumeOp("- 3", &op)));
-	ASSERT('-' == op);
-	ASSERT(0 == strcmp(" 3", consumeOp("* 3", &op)));
-	ASSERT('*' == op);
-	ASSERT(0 == strcmp(" 3", consumeOp("/ 3", &op)));
-	ASSERT('/' == op);
-   ASSERT(0 == strcmp("*-/+ 3 5", consumeOp("**-/+ 3 5", &op)));
-	ASSERT('*' == op);
-   /*ASSERT(0 == strcmp("998 9 + 3", consumeOp("998 9 + 3", &op)));
-	ASSERT(' ' == op);
-   ASSERT(0 == strcmp(" as3", consumeOp("/ as3", &op)));
-	ASSERT('/' == op);*/
+  int op;
+  
+  ASSERT(0 == strcmp(" 3", consumeOp("+ 3", &op)));
+  ASSERT('+' == op);
+  ASSERT(0 == strcmp(" 3", consumeOp("- 3", &op)));
+  ASSERT('-' == op);
+  ASSERT(0 == strcmp(" 3", consumeOp("* 3", &op)));
+  ASSERT('*' == op);
+  ASSERT(0 == strcmp(" 3", consumeOp("/ 3", &op)));
+  ASSERT('/' == op);
+  ASSERT(0 == strcmp("*-/+ 3 5", consumeOp("**-/+ 3 5", &op)));
+  ASSERT('*' == op);
+  /*ASSERT(0 == strcmp("998 9 + 3", consumeOp("998 9 + 3", &op)));
+    ASSERT(' ' == op);
+    ASSERT(0 == strcmp(" as3", consumeOp("/ as3", &op)));
+    ASSERT('/' == op);*/
 }
 
 void testPush(TestObjs *objs) {
-	ASSERT(0 == objs->count);
-	stackPush(objs->values, &objs->count, 123L);
-	ASSERT(1 == objs->count);
-	ASSERT(123L == objs->values[0]);
-	stackPush(objs->values, &objs->count, 456L);
-	ASSERT(2 == objs->count);
-	ASSERT(456L == objs->values[1]);
-	stackPush(objs->values, &objs->count, 789L);
-	ASSERT(3 == objs->count);
-	ASSERT(789L == objs->values[2]);
-   stackPush(objs->values, &objs->count, 4L);
-   ASSERT(4 == objs->count);
-	ASSERT(4L == objs->values[3]);
+  ASSERT(0 == objs->count);
+  stackPush(objs->values, &objs->count, 123L);
+  ASSERT(1 == objs->count);
+  ASSERT(123L == objs->values[0]);
+  stackPush(objs->values, &objs->count, 456L);
+  ASSERT(2 == objs->count);
+  ASSERT(456L == objs->values[1]);
+  stackPush(objs->values, &objs->count, 789L);
+  ASSERT(3 == objs->count);
+  ASSERT(789L == objs->values[2]);
+  stackPush(objs->values, &objs->count, 4L);
+  ASSERT(4 == objs->count);
+  ASSERT(4L == objs->values[3]);
 }
 
 void testPushFull(TestObjs *objs) {
-	/* push maximum number of values onto stack */
-	for (long i = 1L; i <= MAX_STACK; i++) {
-		stackPush(objs->values, &objs->count, i);
-	}
-
-	/* pushing another item should cause a fatal error */
-	expectedExit = 1;
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		stackPush(objs->values, &objs->count, 999L);
-		FAIL("pushing onto full stack didn't fail");
-	} else {
-		/* good, push failed */
-		printf("push onto full stack failed, good...");
-	}
+  /* push maximum number of values onto stack */
+  for (long i = 1L; i <= MAX_STACK; i++) {
+    stackPush(objs->values, &objs->count, i);
+  }
+  
+  /* pushing another item should cause a fatal error */
+  expectedExit = 1;
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    stackPush(objs->values, &objs->count, 999L);
+    FAIL("pushing onto full stack didn't fail");
+  } else {
+    /* good, push failed */
+    printf("push onto full stack failed, good...");
+  }
 }
 
 void testPop(TestObjs *objs) {
-	stackPush(objs->values, &objs->count, 1L);
-	stackPush(objs->values, &objs->count, 2L);
-	stackPush(objs->values, &objs->count, 3L);
-	stackPush(objs->values, &objs->count, 4L);
-	stackPush(objs->values, &objs->count, 5L);
-
-	ASSERT(5L == stackPop(objs->values, &objs->count));
-	ASSERT(4L == stackPop(objs->values, &objs->count));
-	ASSERT(3L == stackPop(objs->values, &objs->count));
-	ASSERT(2L == stackPop(objs->values, &objs->count));
-	ASSERT(1L == stackPop(objs->values, &objs->count));
-	ASSERT(0 == objs->count);
+  stackPush(objs->values, &objs->count, 1L);
+  stackPush(objs->values, &objs->count, 2L);
+  stackPush(objs->values, &objs->count, 3L);
+  stackPush(objs->values, &objs->count, 4L);
+  stackPush(objs->values, &objs->count, 5L);
+  
+  ASSERT(5L == stackPop(objs->values, &objs->count));
+  ASSERT(4L == stackPop(objs->values, &objs->count));
+  ASSERT(3L == stackPop(objs->values, &objs->count));
+  ASSERT(2L == stackPop(objs->values, &objs->count));
+  ASSERT(1L == stackPop(objs->values, &objs->count));
+  ASSERT(0 == objs->count);
 }
 
 void testEvalOp(TestObjs *objs) {
-	ASSERT(3L == evalOp('+', 1L, 2L));
-   ASSERT(5040L == evalOp('*', 56L, 90L));
-	ASSERT(-10L == evalOp('-', 3L, 13L));
-	ASSERT(77L == evalOp('*', 11L, 7L));
-	ASSERT(3 == evalOp('/', 17L, 5L));
-   ASSERT(0L == evalOp('+', 0L, 0L));
-   ASSERT(0L == evalOp('/', 30L, 1000L));
-   ASSERT(1746L == evalOp('/', 99542L, 57L));
-   ASSERT(-5888500L == evalOp('-', 51L, 5888551L));
+  ASSERT(3L == evalOp('+', 1L, 2L));
+  ASSERT(5040L == evalOp('*', 56L, 90L));
+  ASSERT(-10L == evalOp('-', 3L, 13L));
+  ASSERT(77L == evalOp('*', 11L, 7L));
+  ASSERT(3 == evalOp('/', 17L, 5L));
+  ASSERT(0L == evalOp('+', 0L, 0L));
+  ASSERT(0L == evalOp('/', 30L, 1000L));
+  ASSERT(1746L == evalOp('/', 99542L, 57L));
+  ASSERT(-5888500L == evalOp('-', 51L, 5888551L));
 }
 
 void testEval(TestObjs *objs) {
-	ASSERT(1L == eval("1"));
-	ASSERT(2L == eval("1 1 +"));
-	ASSERT(3L == eval("4 1 -"));
-	ASSERT(33L == eval("11 3 *"));
-	ASSERT(27L == eval("3 4 5 + *"));
-   ASSERT(2L == eval("4 2 /"));
-
-	/* make sure eval can handle arbitrary whitespace */
-	ASSERT(6L == eval("  1  \t 5\t\t + \t"));
-   ASSERT(9L == eval("  1  \t 5 3\t\t ++ \t"));
-   ASSERT(0L == eval("  1  115\t 9\t 3 5 +* -/ \t")); 
-   ASSERT(0L == eval("  1  \t 115\t 9\t 3 58 90 20034 5 +* -- ++/ \t")); 
-   ASSERT(29L == eval("  200000  \t 115\t 9\t 3 58 90 25 + * - - + / \t"));
+  ASSERT(1L == eval("1"));
+  ASSERT(2L == eval("1 1 +"));
+  ASSERT(3L == eval("4 1 -"));
+  ASSERT(33L == eval("11 3 *"));
+  ASSERT(27L == eval("3 4 5 + *"));
+  ASSERT(2L == eval("4 2 /"));
+  
+  /* make sure eval can handle arbitrary whitespace */
+  ASSERT(6L == eval("  1  \t 5\t\t + \t"));
+  ASSERT(9L == eval("  1  \t 5 3\t\t ++ \t"));
+  ASSERT(0L == eval("  1  115\t 9\t 3 5 +* -/ \t")); 
+  ASSERT(0L == eval("  1  \t 115\t 9\t 3 58 90 20034 5 +* -- ++/ \t")); 
+  ASSERT(29L == eval("  200000  \t 115\t 9\t 3 58 90 25 + * - - + / \t"));
 }
 
 void testEvalInvalid(TestObjs *objs) {
-	expectedExit = 1;
-
-	/* multiple items left on stack */
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		eval("2 2");
-		FAIL("multiple items on stack not handled");
-	} else {
-		/* good, expected failure */
-		printf("good, multiple items on stack handled...");
-	}
-
-	/* operator with insufficient operands */
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		eval("1 +");
-		FAIL("stack underflow not handled");
-	} else {
-		/* good, expected failure */
-		printf("good, stack underflow handled...");
-	}
-   /* operator with insufficient operands */
-	if (sigsetjmp(exitBuf, 1) == 0) {
-		eval("**+");
-		FAIL("stack underflow not handled");
-	} else {
-		/* good, expected failure */
-		printf("good, stack underflow handled...");
-	}
-
+  expectedExit = 1;
+  
+  /* multiple items left on stack */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval("2 2");
+    FAIL("multiple items on stack not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, multiple items on stack handled...");
+  }
+  
+  /* operator with insufficient operands */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval("1 +");
+    FAIL("stack underflow not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, stack underflow handled...");
+  }
+  /* operator with insufficient operands */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval("**+");
+    FAIL("stack underflow not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, stack underflow handled...");
+  }
+  
 }
