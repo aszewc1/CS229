@@ -12,6 +12,7 @@
 	.section .rodata
 
 eNegativeValue: .string "Negative value"
+eFatalMsgFmt:	.string "Error %s\n"
 
 /* TODO: add other string constants and other read-only data here */
 
@@ -22,27 +23,27 @@ eNegativeValue: .string "Negative value"
  */
 	.globl addPositive
 addPositive:
-	subq $8, %rsp                /* align stack pointer */
+	subq $8, %rsp                	/* align stack pointer */
 
-	movq $0, %r10                /* let %r10 be 0 */
-	cmpq %rdi, %r10              /* compare 1st param to 0 */
+	movq $0, %r10                	/* let %r10 be 0 */
+	cmpq %rdi, %r10              	/* compare 1st param to 0 */
 	jg .LaddPositiveNegativeOperand /* if less, it's negative */
-	cmpq %rsi, %r10              /* compare 2nd param to 0 */
+	cmpq %rsi, %r10              	/* compare 2nd param to 0 */
 	jg .LaddPositiveNegativeOperand /* if less, it's negative */
 
 	/* both operands are non-negative, do the addition */
-	movq %rsi, %rax              /* move second parameter to %rax */
-	addq %rdi, %rax              /* add first parameter to second */
+	movq %rsi, %rax              	/* move second parameter to %rax */
+	addq %rdi, %rax              	/* add first parameter to second */
 	jmp .LaddPositiveDone
 
 .LaddPositiveNegativeOperand:
 	movq $eNegativeValue, %rdi
 	call fatalError
-9:	jmp 9b                       /* should not get here */
+9:	jmp 9b                       	/* should not get here */
 
 .LaddPositiveDone:
-	/* the sum is now in %rax */
-	addq $8, %rsp                /* restore stack pointer */
+					/* the sum is now in %rax */
+	addq $8, %rsp			/* restore stack pointer */
 	ret
 
 /*
@@ -55,10 +56,13 @@ addPositive:
  */
 	.globl fatalError
 fatalError:
-	/* TODO: implement */
-	/* note that this function should not return */
-	ret
-
+	subq $8, %rsp			/* align stack pointer */
+	movq %rdi, %rsi			/* move 1st param to 2nd arg */
+	movq $eFatalMsgFmt, %rdi	/* move error fmt to 1st arg */
+	call printf			/* print with fmt and err */
+	movq $1, %rdi			/* move 1 to 1st arg */
+	call exit			/* resulting in exit(1) */
+	
 /*
  * isSpace - tests a character code to determine whether or not it
  * is a space character.
