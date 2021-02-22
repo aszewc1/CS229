@@ -225,7 +225,31 @@ tokenType:
  */
 	.globl consumeInt
 consumeInt:
-	/* TODO: implement */
+	pushq %rbp			/* save rbp */
+	subq $24, %rsp			/* align stack pointer */
+	movq %rsp, %rbp			/* give rbp stack ptr */
+
+	movq %rdi, 0(%rbp)		/* push 1st arg to stack */
+	movq %rsi, 8(%rbp)		/* push 2nd arg to stack */
+	movl $0, %r10d			/* start r10 at 0 */
+	jmp .LconsumeIntLoop
+.LconsumeIntLoopTop:
+	imull $10, %r10d		/* multiply pval by ten */
+	subq $48, (%r11)		/* convert from ascii to digit */
+	addl (%r11), %r10		/* increment pval by char val */
+	addq $1, 0(%rbp)		/* increment str ptr */
+.LconsumeIntLoop:
+	movq 0(%rbp), %r11		/* r11 becomes str ptr */
+	movq (%r11), %rdi
+	call isDigit			/* call isDigit with 1st char */
+	cmpq $1, %rax
+	je .LconsumeIntLoopTop		/* consume int if digit */
+.LconsumeIntAfterLoop:
+	movq 8(%rbp), %rax
+	movq %r10, (%rax)		/* give pval ptr r10 val */
+	movq %r11, %rax			/* return str ptr */
+	addq $24, %rsp			/* restore stack pointer */
+	popq %rbp			/* restore rbp */
 	ret
 
 /*
@@ -242,7 +266,11 @@ consumeInt:
  */
 	.globl consumeOp
 consumeOp:
-	/* TODO: implement */
+	movq (%rdi), %r10		/* give r10 value of 1st char */
+	movl %esi, %r11d		/* r11d is op ptr */
+	movl %r10, (%r11d)		/* set value at op to 1st char */
+	movq %rdi, %rax
+	addq $1, %rax			/* increment str ptr */
 	ret
 
 /*
