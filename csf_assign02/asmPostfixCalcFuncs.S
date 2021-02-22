@@ -140,7 +140,33 @@ isDigit:
  */
 	.globl skipws
 skipws:
-	/* TODO: implement */
+	pushq %rbp			/* push frame ptr to stack */
+	subq $8, %rsp			/* align stack pointer */
+	movq %rsp, %rbp			/* frame pointer = top stack */
+
+	movq %rdi, 0(%rbp)		/* 1st arg in stack top */
+	jmp .LskipLoop
+.LskipTop:
+	addq $1, 0(%rbp)		/* increment string ptr */
+.LskipLoop:
+	movq 0(%rbp), %rax		/* give rax string ptr */
+	movq (%rax), %r10		/* give r10 first char */
+	cmpb $0, %r10b			/* compare r10 to /0 */
+	je .LskipAfterLoop		/* if string done, exit loop */
+	movq %r10, %rdi			/* prepare 1st char for isSpace */
+	call isSpace
+	cmpq $1, $rax
+	je .LskipTop			/* repeat loop if char is ws */
+.LskipAfterLoop:
+	cmpb $0, %r10b			/* recheck /0 after loop */
+	jne .LskipMoreChars
+	movq $0, %rax			/* return null if end of str */
+	jmp .LdoneSkip
+.LskipMoreChars:
+	movq 0(%rbp), %rax		/* return str ptr if more chars */
+.LdoneSkip:
+	addq $8, %rsp			/* realign stack */
+	popq %rbp			/* retore register to previous */
 	ret
 
 /*
