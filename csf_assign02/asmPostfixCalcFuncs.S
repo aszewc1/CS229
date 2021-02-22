@@ -80,20 +80,20 @@ fatalError:
 isSpace:
 	subq $8, %rsp			/* align stack pointer */
 	
-	movl	%edi, %r10		/* give 1st argument to r10 */
-	cmpl	$9, %r10		/* compare to 9 (ascii) */
-	je	.Lspace			/* is space if 9 */
-	cmpl	$32, %r10		/* compare to 32 */
-	je	.Lspace			/* is space if 32 */
-	cmpl	$13, %r10		/* compare to 13 */
-	je	.Lspace			/* is space if 13 */
-	cmpl	$10, %r10		/* compare to 10 */
-	jne	.LnotSpace		/* is not space if not 10 */
+	movq %rdi, %r10			/* give 1st argument to r10 */
+	cmpq $9, %r10			/* compare to 9 (ascii) */
+	je .Lspace			/* is space if 9 */
+	cmpq $32, %r10			/* compare to 32 */
+	je .Lspace			/* is space if 32 */
+	cmpq $13, %r10			/* compare to 13 */
+	je .Lspace			/* is space if 13 */
+	cmpq $10, %r10			/* compare to 10 */
+	jne .LnotSpace			/* is not space if not 10 */
 .Lspace:
-	movl	$1, %eax		/* if space, give true to %eax */
-	jmp	.LdoneSpace		/* finish function */
+	movq $1, %eax			/* if space, give true to %eax */
+	jmp .LdoneSpace			/* finish function */
 .LnotSpace:
-	movl	$0, %eax		/* if not space, give false */
+	movq $0, %eax			/* if not space, give false */
 .LdoneSpace:
 	addq $8, %rsp			/* retore stack pointer */
 	ret
@@ -165,7 +165,7 @@ skipws:
 .LskipMoreChars:
 	movq 0(%rbp), %rax		/* return str ptr if more chars */
 .LdoneSkip:
-	addq $8, %rsp			/* realign stack */
+	addq $8, %rsp			/* restore stack pointer */
 	popq %rbp			/* retore register to previous */
 	ret
 
@@ -182,7 +182,30 @@ skipws:
  */
 	.globl tokenType
 tokenType:
-	/* TODO: implement */
+	subq $8, %rsp			/* align stack pointer */
+	
+	movq %rdi, %r10			/* store str ptr in r10 */
+	call isDigit
+	cmpq $1, %rax
+	je .LtokInt			/* jump if digit */
+	cmpq $43, (%r10)		/* compare to 43 (ascii) */
+	je .LtokOp			/* is + if 43 */
+	cmpq $45, (%r10)		/* compare to 45 */
+	je .LtokOp			/* is - if 45 */
+	cmpq $42, (%r10)		/* compare to 42 */
+	je .LtokOp			/* is * if 42 */
+	cmpq $47, (%r10)		/* compare to 47 */
+	je .LtokOp			/* is / if 47 */
+.LtokUnknown:
+	movq TOK_UNKNOWN, %rax		/* unknown if not op or digit */
+	jmp .LdoneTok
+.LtokInt:
+	movq TOK_INT, %rax		/* jumped here if digit */
+	jmp .LdoneTok
+.LtokOp:
+	movq TOK_OP, %rax		/* jumped here if op */
+.LdoneTok:
+	addq $8, %rsp			/* restore stack pointer */
 	ret
 
 /*
