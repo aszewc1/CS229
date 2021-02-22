@@ -74,7 +74,24 @@ fatalError:
  */
 	.globl isSpace
 isSpace:
-	/* TODO: implement */
+	subq $8, %rsp
+	
+	movl	%edi, %r10
+	cmpl	$9, %r10
+	je	.Lspace
+	cmpl	$32, %r10
+	je	.Lspace
+	cmpl	$13, %r10
+	je	.Lspace
+	cmpl	$10, %r10
+	jne	.LnotSpace
+.Lspace:
+	movl	$1, %eax
+	jmp	.LdoneSpace
+.LnotSpace:
+	movl	$0, %eax
+.LdoneSpace:
+	addq $8, %rsp
 	ret
 
 /*
