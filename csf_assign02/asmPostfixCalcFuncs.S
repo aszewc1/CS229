@@ -74,24 +74,24 @@ fatalError:
  */
 	.globl isSpace
 isSpace:
-	subq $8, %rsp
+	subq $8, %rsp			/* align stack pointer */
 	
-	movl	%edi, %r10
-	cmpl	$9, %r10
-	je	.Lspace
-	cmpl	$32, %r10
-	je	.Lspace
-	cmpl	$13, %r10
-	je	.Lspace
-	cmpl	$10, %r10
-	jne	.LnotSpace
+	movl	%edi, %r10		/* give 1st argument to r10 */
+	cmpl	$9, %r10		/* compare to 9 (ascii) */
+	je	.Lspace			/* is space if 9 */
+	cmpl	$32, %r10		/* compare to 32 */
+	je	.Lspace			/* is space if 32 */
+	cmpl	$13, %r10		/* compare to 13 */
+	je	.Lspace			/* is space if 13 */
+	cmpl	$10, %r10		/* compare to 10 */
+	jne	.LnotSpace		/* is not space if not 10 */
 .Lspace:
-	movl	$1, %eax
-	jmp	.LdoneSpace
+	movl	$1, %eax		/* if space, give true to %eax */
+	jmp	.LdoneSpace		/* finish function */
 .LnotSpace:
-	movl	$0, %eax
+	movl	$0, %eax		/* if not space, give false */
 .LdoneSpace:
-	addq $8, %rsp
+	addq $8, %rsp			/* retore stack pointer */
 	ret
 
 /*
@@ -106,7 +106,20 @@ isSpace:
  */
 	.globl isDigit
 isDigit:
-	/* TODO: implement */
+	subq $8, %rsp			/* align stack pointer */
+	
+	movl	%edi, %r10		/* give 1st argument to r10 */
+	cmpl	$47, %r10		/* compare to 47 (ascii) */
+	jle	.LnotDigit		/* not digit if less or equal */
+	cmpl	$57, %r10		/* compare to 57 */
+	jg	.LnotDigit		/* not digit if greater */
+.Ldigit:
+	movl	$1, %eax		/* if digit, give true to %eax */
+	jmp	.LdoneDigit		/* finish function */
+.LnotDigit:
+	movl	$0, %eax		/* if not digit, give false */
+.LdoneDigit:
+	addq $8, %rsp			/* retore stack pointer */
 	ret
 
 /*
