@@ -13,6 +13,8 @@
 
 eNegativeValue: .string "Negative value"
 eFatalMsgFmt:	.string "Error %s\n"
+eStackFull:	.string "stack full"
+eStackEmpty:	.string "stack empty"
 
 /* TODO: add other string constants and other read-only data here */
 
@@ -291,18 +293,19 @@ consumeOp:
  */
 	.globl stackPush
 stackPush:
-	subq $8, %rsp
-	cmpq MAX_STACK, (%rsi)
+	subq $8, %rsp			/* align stack pointer */
+	cmpq MAX_STACK, (%rsi)		/* check if count exceeds Maximum */
 	jl .LdonePush
 .LpushErr:
-	movq $eStackEmpty, %rdi
-	call fatalError
+	movq $eStackFull, %rdi		/* prepare error message */
+	call fatalError			/* if count >= Max size, error */
 .LdonePush:
-	movq (%rsi), %r10
-	leaq 0(,%r10,8), %rdx
-	movq %r10, (%rsi)
-	
-	addq $8, %rsp
+	movq (%rsi), %r10		/* store count val in r10 */
+	leaq (,%r10,8), %r10		/* find count's address in stack */
+	addq %r10, %rdi			/* move stack's pointer */
+	movq %rdx, (%rdi)		/* add val to stack */
+	addq $1, (%rsi)			/* increment count */
+	addq $8, %rsp			/* restore stack pointer */
 	ret
 
 /*
@@ -321,7 +324,19 @@ stackPush:
  */
 	.globl stackPop
 stackPop:
-	/* TODO: implement */
+	subq $8, %rsp			/* align stack pointer */
+	cmpq $0, (%rsi)			/* check if count <= 0 */
+	jg .LdonePop
+.LpopErr:
+	movq $eStackEmpty, %rdi		/* prepare error message */
+	call fatalError			/* if count <= 0, error */
+.LdonePop:
+	movq (%rsi), %r10		/* store count val in r10 */
+	leaq (,%r10,8), %r10		/* find count's address in stack */
+	addq %r10, %rdi			/* move stack's pointer */
+	movq (%rdi), %rax		/* prepare to return val */
+	subq $1, (%rsi)			/* decrement count */
+	addq $8, %rsp			/* restore stack pointer */
 	ret
 
 /*
@@ -337,7 +352,40 @@ stackPop:
  */
 	.globl evalOp
 evalOp:
+	subq $8, %rsp			/* align stack pointer */
+	
+	movq %rsi, %rax			/* give left arg to rax */
+	movl %edi, %r10d		/* give 1st argument to r10 */
+	cmpl $43, %r10d			/* compare to 43 (ascii) */
+	je .Laddition			/* addition if 43 */
+	cmpl $45, %r10d			/* compare to 45 */
+	je .Lsubtraction		/* subtraction if 45 */
+	cmpl $42, %r10d			/* compare to 42 */
+	je .Lmultiplication		/* multiplication if 42 */
+	cmpl $47, %r10d			/* compare to 47 */
+	jne .Ldivision			/* division if not 47 */
+.Ldefault:
+	movq $0, %rax
+	subq $1, %rax
+	jmp .LdoneEvalOp		/* return -1 for unknown op */
+.Laddition:
+	addq %rdx, %rax			/* add right to left */
+	jmp .LdoneEvalOp
+.Lsubtraction:	
+	subq %rdx, %rax			/* sub right from left */
+	jmp .LdoneEvalOp
+.Lmultiplication:
+	imulq %rdx, %rax		/* mult right by left */
+	jmp .LdoneEvalOp
+.Ldivision:
+	movq %rdx, %r10			/* move divisor to r10 */
+	movq $0, %rdx			/* set rdx to 0 */
+	idivq %r10			/* %rdx:%rax / %r10 */
+	jmp .LdoneEvalOp		/* quotient in %rax */
+.LdoneEvalOp:
+	addq $8, %rsp			/* retore stack pointer */
 	ret
+
 
 /* vim:ft=gas:
  */
