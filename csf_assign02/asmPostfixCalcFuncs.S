@@ -291,7 +291,18 @@ consumeOp:
  */
 	.globl stackPush
 stackPush:
-	/* TODO: implement */
+	subq $8, %rsp
+	cmpq MAX_STACK, (%rsi)
+	jl .LdonePush
+.LpushErr:
+	movq $eStackEmpty, %rdi
+	call fatalError
+.LdonePush:
+	movq (%rsi), %r10
+	leaq 0(,%r10,8), %rdx
+	movq %r10, (%rsi)
+	
+	addq $8, %rsp
 	ret
 
 /*
