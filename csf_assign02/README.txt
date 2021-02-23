@@ -6,6 +6,11 @@ aszewc1
 - debugged on initial cTests
 - wrote all of sysTests.sh
 
+- wrote all assembly functions
+- commented assembly functions
+- debugged assembly functions
+- fixed valgrind leaks in consumeOp
+
 Victor Wen
 vwen2
 - added more sysTests

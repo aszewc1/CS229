@@ -277,9 +277,9 @@ consumeInt:
  */
 	.globl consumeOp
 consumeOp:
-	movq (%rdi), %r10		/* give r10 value of 1st char */
-	movq %rsi, %r11			/* r11d is op ptr */
-	movb %r10b, (%r11)		/* set value at op to 1st char */
+	movzbl (%rdi), %r10d		/* give r10 value of 1st char */
+	movsbl %r10b, %r10d
+	movl %r10d, (%rsi)		/* set value at op to 1st char */
 	movq %rdi, %rax
 	addq $1, %rax			/* increment str ptr */
 	ret
@@ -340,11 +340,11 @@ stackPop:
 	movq $eStackEmpty, %rdi		/* prepare error message */
 	call fatalError			/* if count <= 0, error */
 .LdonePop:
+	subq $1, (%rsi)			/* decrement count */
 	movq (%rsi), %r10		/* store count val in r10 */
 	leaq (,%r10,8), %r10		/* find count's address in stack */
 	addq %r10, %rdi			/* move stack's pointer */
 	movq (%rdi), %rax		/* prepare to return val */
-	subq $1, (%rsi)			/* decrement count */
 	addq $8, %rsp			/* restore stack pointer */
 	ret
 
@@ -372,7 +372,7 @@ evalOp:
 	cmpl $42, %r10d			/* compare to 42 */
 	je .Lmultiplication		/* multiplication if 42 */
 	cmpl $47, %r10d			/* compare to 47 */
-	jne .Ldivision			/* division if not 47 */
+	je .Ldivision			/* division if 47 */
 .Ldefault:
 	movq $0, %rax
 	subq $1, %rax
