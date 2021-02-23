@@ -82,20 +82,20 @@ fatalError:
 isSpace:
 	subq $8, %rsp			/* align stack pointer */
 	
-	movq %rdi, %r10			/* give 1st argument to r10 */
-	cmpq $9, %r10			/* compare to 9 (ascii) */
+	movb %dil, %r10b		/* give 1st argument to r10 */
+	cmpb $9, %r10b			/* compare to 9 (ascii) */
 	je .Lspace			/* is space if 9 */
-	cmpq $32, %r10			/* compare to 32 */
+	cmpb $32, %r10b			/* compare to 32 */
 	je .Lspace			/* is space if 32 */
-	cmpq $13, %r10			/* compare to 13 */
+	cmpb $13, %r10b			/* compare to 13 */
 	je .Lspace			/* is space if 13 */
-	cmpq $10, %r10			/* compare to 10 */
+	cmpb $10, %r10b			/* compare to 10 */
 	jne .LnotSpace			/* is not space if not 10 */
 .Lspace:
-	movq $1, %eax			/* if space, give true to %eax */
+	movl $1, %eax			/* if space, give true to %eax */
 	jmp .LdoneSpace			/* finish function */
 .LnotSpace:
-	movq $0, %eax			/* if not space, give false */
+	movl $0, %eax			/* if not space, give false */
 .LdoneSpace:
 	addq $8, %rsp			/* retore stack pointer */
 	ret
@@ -114,10 +114,10 @@ isSpace:
 isDigit:
 	subq $8, %rsp			/* align stack pointer */
 	
-	movl	%edi, %r10		/* give 1st argument to r10 */
-	cmpl	$47, %r10		/* compare to 47 (ascii) */
+	movb	%dil, %r10b		/* give 1st argument to r10 */
+	cmpb	$47, %r10b		/* compare to 47 (ascii) */
 	jle	.LnotDigit		/* not digit if less or equal */
-	cmpl	$57, %r10		/* compare to 57 */
+	cmpb	$57, %r10b		/* compare to 57 */
 	jg	.LnotDigit		/* not digit if greater */
 .Ldigit:
 	movl	$1, %eax		/* if digit, give true to %eax */
@@ -157,15 +157,14 @@ skipws:
 	je .LskipAfterLoop		/* if string done, exit loop */
 	movq %r10, %rdi			/* prepare 1st char for isSpace */
 	call isSpace
-	cmpq $1, $rax
+	cmpq $1, %rax
 	je .LskipTop			/* repeat loop if char is ws */
 .LskipAfterLoop:
-	cmpb $0, %r10b			/* recheck /0 after loop */
-	jne .LskipMoreChars
+	movq 0(%rbp), %rax		/* give rax string ptr */
+	cmpb $0, (%rax)			/* recheck /0 after loop */
+	jne .LdoneSkip
 	movq $0, %rax			/* return null if end of str */
 	jmp .LdoneSkip
-.LskipMoreChars:
-	movq 0(%rbp), %rax		/* return str ptr if more chars */
 .LdoneSkip:
 	addq $8, %rsp			/* restore stack pointer */
 	popq %rbp			/* retore register to previous */
@@ -184,30 +183,36 @@ skipws:
  */
 	.globl tokenType
 tokenType:
+	pushq %rbp
 	subq $8, %rsp			/* align stack pointer */
+	movq %rsp, %rbp
 	
-	movq %rdi, %r10			/* store str ptr in r10 */
+	movq %rdi, 0(%rbp)		/* store str ptr in rbp */
+	movq (%rdi), %rdi
 	call isDigit
 	cmpq $1, %rax
+	movq 0(%rbp), %r10
+	movq (%r10), %rdi
 	je .LtokInt			/* jump if digit */
-	cmpq $43, (%r10)		/* compare to 43 (ascii) */
+	cmpb $43, %dil			/* compare to 43 (ascii) */
 	je .LtokOp			/* is + if 43 */
-	cmpq $45, (%r10)		/* compare to 45 */
+	cmpb $45, %dil			/* compare to 45 */
 	je .LtokOp			/* is - if 45 */
-	cmpq $42, (%r10)		/* compare to 42 */
+	cmpb $42, %dil			/* compare to 42 */
 	je .LtokOp			/* is * if 42 */
-	cmpq $47, (%r10)		/* compare to 47 */
+	cmpb $47, %dil			/* compare to 47 */
 	je .LtokOp			/* is / if 47 */
 .LtokUnknown:
-	movq TOK_UNKNOWN, %rax		/* unknown if not op or digit */
+	movq $TOK_UNKNOWN, %rax		/* unknown if not op or digit */
 	jmp .LdoneTok
 .LtokInt:
-	movq TOK_INT, %rax		/* jumped here if digit */
+	movq $TOK_INT, %rax		/* jumped here if digit */
 	jmp .LdoneTok
 .LtokOp:
-	movq TOK_OP, %rax		/* jumped here if op */
+	movq $TOK_OP, %rax		/* jumped here if op */
 .LdoneTok:
 	addq $8, %rsp			/* restore stack pointer */
+	popq %rbp
 	ret
 
 /*
@@ -228,17 +233,20 @@ tokenType:
 	.globl consumeInt
 consumeInt:
 	pushq %rbp			/* save rbp */
+	pushq %r12			/* save r12 */
 	subq $24, %rsp			/* align stack pointer */
 	movq %rsp, %rbp			/* give rbp stack ptr */
 
 	movq %rdi, 0(%rbp)		/* push 1st arg to stack */
 	movq %rsi, 8(%rbp)		/* push 2nd arg to stack */
-	movl $0, %r10d			/* start r10 at 0 */
+	movq $0, %r12			/* start pval at 0 */
 	jmp .LconsumeIntLoop
 .LconsumeIntLoopTop:
-	imull $10, %r10d		/* multiply pval by ten */
-	subq $48, (%r11)		/* convert from ascii to digit */
-	addl (%r11), %r10		/* increment pval by char val */
+	movq 0(%rbp), %r11		/* r11 becomes str ptr */
+	movq (%r11), %r11
+	imulq $10, %r12			/* multiply pval by ten */
+	subb $48, %r11b			/* convert from ascii to digit */
+	addb %r11b, %r12b		/* increment pval by char val */
 	addq $1, 0(%rbp)		/* increment str ptr */
 .LconsumeIntLoop:
 	movq 0(%rbp), %r11		/* r11 becomes str ptr */
@@ -248,9 +256,10 @@ consumeInt:
 	je .LconsumeIntLoopTop		/* consume int if digit */
 .LconsumeIntAfterLoop:
 	movq 8(%rbp), %rax
-	movq %r10, (%rax)		/* give pval ptr r10 val */
-	movq %r11, %rax			/* return str ptr */
+	movq %r12, (%rax)		/* give pval ptr computed val */
+	movq 0(%rbp), %rax		/* return str ptr */
 	addq $24, %rsp			/* restore stack pointer */
+	popq %r12			/* restore r12 */
 	popq %rbp			/* restore rbp */
 	ret
 
@@ -269,8 +278,8 @@ consumeInt:
 	.globl consumeOp
 consumeOp:
 	movq (%rdi), %r10		/* give r10 value of 1st char */
-	movl %esi, %r11d		/* r11d is op ptr */
-	movl %r10, (%r11d)		/* set value at op to 1st char */
+	movq %rsi, %r11			/* r11d is op ptr */
+	movb %r10b, (%r11)		/* set value at op to 1st char */
 	movq %rdi, %rax
 	addq $1, %rax			/* increment str ptr */
 	ret
@@ -294,7 +303,7 @@ consumeOp:
 	.globl stackPush
 stackPush:
 	subq $8, %rsp			/* align stack pointer */
-	cmpq MAX_STACK, (%rsi)		/* check if count exceeds Maximum */
+	cmpq $MAX_STACK, (%rsi)		/* check if count exceeds Maximum */
 	jl .LdonePush
 .LpushErr:
 	movq $eStackFull, %rdi		/* prepare error message */
