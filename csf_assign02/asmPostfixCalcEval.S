@@ -26,91 +26,84 @@ eBadStack:	.string "Stack misaligned"
  */
 	.globl eval
 eval:
-	pushq %r12
-	pushq %rbp
-	subq $248, %rsp		/* Stack pointer moved by odd mult of 8 */
+	pushq %rbp		/* Save callee-saved registers */
+	subq $200, %rsp		/* Stack pointer aligned by odd mult of 8 */
 	movq %rsp, %rbp
-	movq 0(%rbp), %r10
-	movq %rdi, (%r10)
-	movq 8(%rbp), %r10
-	movq $0, (%r10)		/* start count at 0 at index 8 in stack */
-	//movq 16(%rbp) %r12	/* 16-176 represent "stack" array */
+
+	movq %rdi, 0(%rbp)	/* push 1st arg to stack */
+	movq $0, 8(%rbp)	/* start count at 0 at index 8 in stack */
+				/* 16-176 represent "stack" array */
 	call skipws
+	movq %rax, 0(%rbp)	/* update str ptr */
 .LloopTop:
+	cmpq $0, 0(%rbp)	/* ensure str ptr not null */
+	je .Ldone
 	movq 0(%rbp), %rdi
-	movq (%rdi), %rdi
-	call tokenType
+	call tokenType		/* get token from str ptr */
 	cmpl $TOK_INT, %eax
 	je .LtokenInt
 	cmpl $TOK_OP, %eax
 	je .LtokenOp
-	jmp .LtokenBad
+	jmp .LtokenBad		/* jump to token handler */
 .LtokenInt:
-	movq 176(%rbp), %r12
-	movq $0, (%r12)
+	movq $0, 176(%rbp)
 
 	movq 0(%rbp), %rdi
-	movq (%rdi), %rdi
-	movq %r12, %rsi
-	call consumeInt
-	movq 0(%rbp), %r10
-	movq %rax, (%r10)
+	leaq 176(%rbp), %rsi
+	call consumeInt		/* call consumeInt(s, &r12) */
+	movq %rax, 0(%rbp)	/* reassign str ptr */
 	
-	movq 16(%rbp), %rdi
-	movq 8(%rbp), %rsi
-	movq (%r12), %rdx
-	call stackPush
+	leaq 16(%rbp), %rdi
+	leaq 8(%rbp), %rsi
+	movq 176(%rbp), %rdx
+	call stackPush		/* call stackPush(stack, &count, r12) */
+	jmp .LloopBottom
 .LtokenOp:
-	movq 176(%rbp), %r12
-	movl $0, (%r12d)
+	movl $0, 176(%rbp)
 
 	movq 0(%rbp), %rdi
-	movq (%rdi), %rdi
-	movq %r12, %rsi
-	call consumeOp
-	movq 0(%rbp), %r10
-	movq %rax, (%r10)
+	leaq 176(%rbp), %rsi
+	call consumeOp		/* call consumeOp(s, &r12) */
+	movq %rax, 0(%rbp)	/* reassign str ptr */
 
-	movq 16(%rbp), %rdi
-	movq 8(%rbp), %rsi
-	call stackPop
-	movq 184(%rbp), %r10
-	movq %rax, (%r10)
+	leaq 16(%rbp), %rdi
+	leaq 8(%rbp), %rsi
+	call stackPop		/* right = stackPop(stack, &count) */
+	movq %rax, 184(%rbp)	/* assign right */
 
-	movq 16(%rbp), %rdi
-	movq 8(%rbp), %rsi
-	call stackPop
-	movq 192(%rbp), %r10
-	movq %rax, (%r10)
+	leaq 16(%rbp), %rdi
+	leaq 8(%rbp), %rsi
+	call stackPop		/* left = stackPop(stack, &count) */
+	movq %rax, 192(%rbp)	/* assign left */
 
-	movl (%r12), %edi
+	movl 176(%rbp), %edi
 	movq 192(%rbp), %rsi
-	movq (%rsi), %rsi
 	movq 184(%rbp), %rdx
-	movq (%rdx), %rdx
-	call evalOp
-	movq %rax, %rdx
+	call evalOp		/* eval = evalOp(r12, left, right) */
+	movq %rax, %rdx		/* assign eval */
 
-	movq 16(%rbp), %rdi
-	movq 8(%rbp), %rsi
-	call stackPush
+	leaq 16(%rbp), %rdi
+	leaq 8(%rbp), %rsi
+	call stackPush		/* call stackPush(stack, &count, eval) */
 .LloopBottom:
 	movq 0(%rbp), %rdi
 	call skipws
+	movq %rax, 0(%rbp)	/* skip ws and reassign str ptr */
+	jmp .LloopTop		/* repeat loop... */
 .LtokenBad:
 	movq $eNoToken, %rdi
-	call fatalError
+	call fatalError		/* call fatalError if unknown token */
 .LstackBad:
 	movq $eBadStack, %rdi
-	call fatalError
+	call fatalError		/* call fatalError if incorrect remaining */
 .Ldone:
-	cmpq $1, 8(%rbp)
+	cmpq $1, 8(%rbp)	/* verify correct remeining after looping */
 	jne .LstackBad
-	movq 16(%rbp), %r10
-	movq (%r10), %rdi
-	movq 8(%rbp), %r10
-	movq (%r10), %rsi
-	call stackPop
+	leaq 16(%rbp), %rdi
+	leaq 8(%rbp), %rsi
+	call stackPop		/* call stackPop(stack, &count) */
+	addq $200, %rsp
+	popq %rbp		/* realign stack and restore callee-saved */
 	ret
 
 /* vim:ft=gas:
