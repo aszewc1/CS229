@@ -12,7 +12,10 @@ aszewc1
 - fixed valgrind leaks in consumeOp
 
 - wrote eval in assembly
-- realized that we have to align stack by even multiple not odd
+- commented eval in asm
+- debugged by giving offset to stack
+  that is an even multiple of 8
+- debugged for valgrind
 
 Victor Wen
 vwen2
