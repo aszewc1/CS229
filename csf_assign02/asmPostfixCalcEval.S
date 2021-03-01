@@ -27,7 +27,7 @@ eBadStack:	.string "Stack misaligned"
 	.globl eval
 eval:
 	pushq %rbp		/* Save callee-saved registers */
-	subq $208, %rsp		/* Stack pointer aligned by odd mult of 8 */
+	subq $208, %rsp		/* Stack pointer aligned by mult of 8 */
 	movq %rsp, %rbp
 
 	movq %rdi, 0(%rbp)	/* push 1st arg to stack */

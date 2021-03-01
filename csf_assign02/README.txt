@@ -16,6 +16,7 @@ aszewc1
 - debugged by giving offset to stack
   that is an even multiple of 8
 - debugged for valgrind
+- wrote main in assembly
 
 Victor Wen
 vwen2

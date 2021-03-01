@@ -241,16 +241,17 @@ consumeInt:
 	jmp .LconsumeIntLoop
 .LconsumeIntLoopTop:
 	movq 0(%rbp), %r11		/* r11 becomes str ptr */
-	movq (%r11), %r11
+	movb (%r11), %r11b
 	imulq $10, %r12			/* multiply pval by ten */
 	subb $48, %r11b			/* convert from ascii to digit */
-	addb %r11b, %r12b		/* increment pval by char val */
+	movsbq %r11b, %r11
+	addq %r11, %r12			/* increment pval by char val */
 	addq $1, 0(%rbp)		/* increment str ptr */
 .LconsumeIntLoop:
 	movq 0(%rbp), %r11		/* r11 becomes str ptr */
 	movq (%r11), %rdi
 	call isDigit			/* call isDigit with 1st char */
-	cmpq $1, %rax
+	cmpl $1, %eax
 	je .LconsumeIntLoopTop		/* consume int if digit */
 .LconsumeIntAfterLoop:
 	movq 8(%rbp), %rax

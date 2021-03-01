@@ -164,6 +164,11 @@ void testIsSpace(TestObjs *objs) {
   ASSERT(!isSpace('+'));
   ASSERT(!isSpace('a'));
   ASSERT(!isSpace('*'));
+  ASSERT(isSpace('\n'));
+  ASSERT(isSpace(9));
+  ASSERT(isSpace(32));
+  ASSERT(isSpace(13));
+  ASSERT(isSpace(10));
 }
 
 void testIsDigit(TestObjs *objs) {
@@ -234,10 +239,8 @@ void testConsumeOp(TestObjs *objs) {
   ASSERT('/' == op);
   ASSERT(0 == strcmp("*-/+ 3 5", consumeOp("**-/+ 3 5", &op)));
   ASSERT('*' == op);
-  /*ASSERT(0 == strcmp("998 9 + 3", consumeOp("998 9 + 3", &op)));
-    ASSERT(' ' == op);
-    ASSERT(0 == strcmp(" as3", consumeOp("/ as3", &op)));
-    ASSERT('/' == op);*/
+  ASSERT(0 == strcmp(" as3", consumeOp("/ as3", &op)));
+  ASSERT('/' == op);
 }
 
 void testPush(TestObjs *objs) {
@@ -314,6 +317,11 @@ void testEval(TestObjs *objs) {
   ASSERT(0L == eval("  1  115\t 9\t 3 5 +* -/ \t")); 
   ASSERT(0L == eval("  1  \t 115\t 9\t 3 58 90 20034 5 +* -- ++/ \t")); 
   ASSERT(29L == eval("  200000  \t 115\t 9\t 3 58 90 25 + * - - + / \t"));
+
+  /* stress tests */
+  ASSERT(19L == eval("1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ++++++++++++++++++"));
+  ASSERT(19L == eval("1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ++++++++++++++++++*"));
+  ASSERT(0L == eval("18446744073709551616"));
 }
 
 void testEvalInvalid(TestObjs *objs) {
@@ -336,6 +344,7 @@ void testEvalInvalid(TestObjs *objs) {
     /* good, expected failure */
     printf("good, stack underflow handled...");
   }
+
   /* operator with insufficient operands */
   if (sigsetjmp(exitBuf, 1) == 0) {
     eval("**+");
@@ -344,5 +353,31 @@ void testEvalInvalid(TestObjs *objs) {
     /* good, expected failure */
     printf("good, stack underflow handled...");
   }
-  
+
+  /* empty string */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval("");
+    FAIL("stack underflow not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, stack underflow handled...");
+  }
+
+  /* whitespace string */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval(" \t\n");
+    FAIL("stack underflow not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, stack underflow handled...");
+  }
+
+  /* stack overflow */
+  if (sigsetjmp(exitBuf, 1) == 0) {
+    eval("1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1");
+    FAIL("stack overflow not handled");
+  } else {
+    /* good, expected failure */
+    printf("good, stack overflow handled...");
+  }
 }
