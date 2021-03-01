@@ -387,7 +387,7 @@ evalOp:
 	jmp .LdoneEvalOp
 .Ldivision:
 	movq %rdx, %r10			/* move divisor to r10 */
-	movq $0, %rdx			/* set rdx to 0 */
+	cqto				/* set rdx to 0 */
 	idivq %r10			/* %rdx:%rax / %r10 */
 	jmp .LdoneEvalOp		/* quotient in %rax */
 .LdoneEvalOp:

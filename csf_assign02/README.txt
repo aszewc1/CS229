@@ -13,6 +13,7 @@ aszewc1
 
 - wrote eval in assembly
 - commented eval in asm
+- use cqto for idiv instruction
 - debugged by giving offset to stack
   that is an even multiple of 8
 - debugged for valgrind
