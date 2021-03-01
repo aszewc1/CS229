@@ -97,7 +97,7 @@ eval:
 	movq $eBadStack, %rdi
 	call fatalError		/* call fatalError if incorrect remaining */
 .Ldone:
-	cmpq $1, 8(%rbp)	/* verify correct remeining after looping */
+	cmpq $1, 8(%rbp)	/* verify correct remaining after looping */
 	jne .LstackBad
 	leaq 16(%rbp), %rdi
 	leaq 8(%rbp), %rsi

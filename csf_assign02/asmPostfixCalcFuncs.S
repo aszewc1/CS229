@@ -12,9 +12,9 @@
 	.section .rodata
 
 eNegativeValue: .string "Negative value"
-eFatalMsgFmt:	.string "Error %s\n"
-eStackFull:	.string "stack full"
-eStackEmpty:	.string "stack empty"
+eFatalMsgFmt:	.string "Error: %s\n"
+eStackFull:	.string "Stack is full"
+eStackEmpty:	.string "Stack is empty"
 
 /* TODO: add other string constants and other read-only data here */
 
