@@ -27,7 +27,7 @@ eBadStack:	.string "Stack misaligned"
 	.globl eval
 eval:
 	pushq %rbp		/* Save callee-saved registers */
-	subq $200, %rsp		/* Stack pointer aligned by odd mult of 8 */
+	subq $208, %rsp		/* Stack pointer aligned by odd mult of 8 */
 	movq %rsp, %rbp
 
 	movq %rdi, 0(%rbp)	/* push 1st arg to stack */
@@ -102,7 +102,7 @@ eval:
 	leaq 16(%rbp), %rdi
 	leaq 8(%rbp), %rsi
 	call stackPop		/* call stackPop(stack, &count) */
-	addq $200, %rsp
+	addq $208, %rsp
 	popq %rbp		/* realign stack and restore callee-saved */
 	ret
 

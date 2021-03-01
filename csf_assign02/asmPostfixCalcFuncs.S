@@ -16,8 +16,6 @@ eFatalMsgFmt:	.string "Error: %s\n"
 eStackFull:	.string "Stack is full"
 eStackEmpty:	.string "Stack is empty"
 
-/* TODO: add other string constants and other read-only data here */
-
 	.section .text
 
 /*

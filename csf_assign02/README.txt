@@ -11,6 +11,9 @@ aszewc1
 - debugged assembly functions
 - fixed valgrind leaks in consumeOp
 
+- wrote eval in assembly
+- realized that we have to align stack by even multiple not odd
+
 Victor Wen
 vwen2
 - added more sysTests
