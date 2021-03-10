@@ -1,26 +1,22 @@
-#ifndef CACHE.H
-#define CACHE.H
-
+#ifndef CACHE_H
+#define CACHE_H
 
 #include <stdio.h>
 #include <iostream>
 
-using namespace std;
-
-class Cache
-{
+class Cache {
   public:
-    Cache (); //constructor
-    ~Cache ();//deconstructor
+    Cache (); // Constructor
+    ~Cache ();// Deconstructor
     void print() const;
   private:
-    int totLoads; //total number of loads
-    int totStores; // total number of stores
-    int loadHit; //number of hits during load
-    int loadMiss; //number of misses during load
-    int storeHit; //number of hits during store
-    int storeMiss; // number of misses during store
-    int cycles; //total cycles
+    int totLoads; // Total number of loads
+    int totStores; // Total number of stores
+    int loadHit; // Number of hits during load
+    int loadMiss; // Number of misses during load
+    int storeHit; // Number of hits during store
+    int storeMiss; // Number of misses during store
+    int cycles; // Total cycles
 };
 
-#endif CACHE.H
+#endif // CACHE_H
