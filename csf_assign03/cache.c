@@ -4,7 +4,7 @@
 #include "cache.h"
 
 Cache *create_cache() {
-  Cache *c = malloc(sizeof(cache));
+  Cache *c = malloc(sizeof(Cache));
   c->loads = 0;
   c->stores = 0;
   c->load_hit = 0;
@@ -12,7 +12,7 @@ Cache *create_cache() {
   c->store_hit = 0;
   c->store_miss = 0;
   c->cycles = 0;
-  return cache;
+  return c;
 }
 
 void destroy_cache(Cache *c) { free(c); }
