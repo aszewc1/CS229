@@ -2,21 +2,19 @@
 #define CACHE_H
 
 #include <stdio.h>
-#include <iostream>
 
-class Cache {
-  public:
-    Cache (); // Constructor
-    ~Cache ();// Deconstructor
-    void print() const;
-  private:
-    int totLoads; // Total number of loads
-    int totStores; // Total number of stores
-    int loadHit; // Number of hits during load
-    int loadMiss; // Number of misses during load
-    int storeHit; // Number of hits during store
-    int storeMiss; // Number of misses during store
-    int cycles; // Total cycles
-};
+typedef struct {
+  int loads; // Total number of loads
+  int stores; // Total number of stores
+  int load_hit; // Number of hits during load
+  int load_miss; // Number of misses during load
+  int store_hit; // Number of hits during store
+  int store_miss; // Number of misses during store
+  int cycles; // Total cycles
+} Cache;
+
+Cache *create_cache(); // Constructor
+void destroy_cache(Cache *c); // Destructor
+void summary(Cache *c);
 
 #endif // CACHE_H
