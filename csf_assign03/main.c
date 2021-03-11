@@ -17,7 +17,7 @@ struct SimulationParams {
 };
 
 // Return whether an integer is a positive power of 2
-bool is_pp2 (int num) { return ((num > 0) && (num & (num - 1))); }
+bool is_pp2 (int num) { return ((num > 0) && ((num & (num - 1)) == 0)); }
 
 struct SimulationParams * parse_args(int argc, char** argv) {
   if (argc != 7) { return NULL; }
@@ -54,6 +54,15 @@ struct SimulationParams * parse_args(int argc, char** argv) {
   return sim;
 }
 
+int find_pow(int num) {
+  int count = 0;
+  while (num > 1) {
+    count++;
+    num = num >> 1;
+  }
+  return count;
+}
+
 int main(int argc, char** argv) {
   struct SimulationParams *params = parse_args(argc, argv);
   if (!params) {
@@ -61,8 +70,31 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Continue
+  int o_bits = find_pow(params->bytes);
+  int i_bits = find_pow(params->sets);
+  int t_bits = 32 - o_bits - i_bits;
+  t_bits = t_bits;
 
+  Cache *c = create_cache(o_bits, i_bits, find_pow(params->blocks));
+
+  char type;
+  char hex[9];
+  int nothing;
+  
+  while(scanf("%c 0x%s %d\n", &type, hex, &nothing) == 3) {
+    unsigned int adr = strtoul(hex, NULL, 16);
+    adr = adr;
+    if (type == 'l') {
+      c->loads++;
+      // Handle reads
+    }
+    else if (type == 's') {
+      c->stores++;
+      // Handle different write policies
+    }
+  }
+
+  destroy_cache(c);
   free(params);
   return 0;
 }

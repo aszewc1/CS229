@@ -3,8 +3,9 @@
 
 #include "cache.h"
 
-Cache *create_cache() {
+Cache *create_cache(int o, int i, int s) {
   Cache *c = malloc(sizeof(Cache));
+  c->arr = malloc(o * i * s);
   c->loads = 0;
   c->stores = 0;
   c->load_hit = 0;

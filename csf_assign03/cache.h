@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 typedef struct {
+  unsigned int *arr; // Dynamically allocated array representing cache
   int loads; // Total number of loads
   int stores; // Total number of stores
   int load_hit; // Number of hits during load
