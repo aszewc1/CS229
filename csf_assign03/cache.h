@@ -3,10 +3,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct {
-  unsigned int tag;       // Tag stored in block
+  uint32_t tag;           // Tag stored in block
   bool valid;             // Track whether block has been filled
   bool dirty;             // Track whether block needs write
   unsigned int load_ts;   // Load timestamp for block

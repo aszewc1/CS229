@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include "cache.h"
 
@@ -75,15 +76,34 @@ int main(int argc, char** argv) {
   int t_bits = 32 - o_bits - i_bits;    // tag bits
 
   Cache *c = create_cache(o_bits, params->sets, params->blocks);
+  Set *cache = c->sets;
 
   char type;
   char hex[9];
   int nothing;
+  int ts = 0;
   
   while(scanf("%c 0x%s %d\n", &type, hex, &nothing) == 3) {
+    ts++;
     // bit mask to extract tag bits
-    unsigned int adr = strtoul(hex, NULL, 16);
-    unsigned int tag = ((0 - 1) << (32 - t_bits)) & adr;
+    uint32_t adr = strtoul(hex, NULL, 16);
+    uint32_t tag = (((0 - 1) << (32 - t_bits)) & adr) >> (32 - t_bits);
+    uint32_t index = ((((1 << i_bits) - 1) << o_bits) & adr) >> o_bits;
+    bool hit = false;
+
+    Set curr_set = cache[index];
+    for (int i = 0; i < params->blocks; i++) {
+      Block curr_block = *(curr_set->blocks + i);
+      if (curr_block->tag == tag) {
+	hit = true;
+	curr_block->access_ts = ts;
+      }
+    }
+
+    if (!hit) {
+      // eviction
+    }
+    
     if (type == 'l') {
       c->loads++;
       // Handle reads
