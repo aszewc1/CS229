@@ -70,20 +70,20 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  int o_bits = find_pow(params->bytes);
-  int i_bits = find_pow(params->sets);
-  int t_bits = 32 - o_bits - i_bits;
-  t_bits = t_bits;
+  int o_bits = find_pow(params->bytes); // offset bits
+  int i_bits = find_pow(params->sets);  // index bits
+  int t_bits = 32 - o_bits - i_bits;    // tag bits
 
-  Cache *c = create_cache(o_bits, i_bits, find_pow(params->blocks));
+  Cache *c = create_cache(o_bits, params->sets, params->blocks);
 
   char type;
   char hex[9];
   int nothing;
   
   while(scanf("%c 0x%s %d\n", &type, hex, &nothing) == 3) {
+    // bit mask to extract tag bits
     unsigned int adr = strtoul(hex, NULL, 16);
-    adr = adr;
+    unsigned int tag = ((0 - 1) << (32 - t_bits)) & adr;
     if (type == 'l') {
       c->loads++;
       // Handle reads
