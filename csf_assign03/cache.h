@@ -32,7 +32,7 @@ typedef struct {
   int cycles;             // Total cycles
 } Cache;
 
-Cache *create_cache(); // Constructor
+Cache *create_cache(int num_sets, int set_assoc); // Constructor
 void destroy_cache(Cache *c); // Destructor
 void summary(Cache *c);
 void load_block(Block *b, uint32_t t, unsigned int ts);

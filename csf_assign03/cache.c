@@ -3,7 +3,7 @@
 
 #include "cache.h"
 
-Cache *create_cache(int o, int num_sets, int set_assoc) {
+Cache *create_cache(int num_sets, int set_assoc) {
   Cache *c = malloc(sizeof(Cache));
   c->sets = malloc(sizeof(Set) * num_sets);
   c->num_sets = num_sets;
@@ -34,7 +34,6 @@ Cache *create_cache(int o, int num_sets, int set_assoc) {
 
 void destroy_cache(Cache *c) {
   int n_s = c->num_sets;
-  int s_a = c->set_assoc;
   Set *set_ptr = c->sets;
   
   for (int i = 0; i < n_s; i++) {

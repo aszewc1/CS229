@@ -64,15 +64,22 @@ int find_pow(int num) {
   return count;
 }
 
+uint32_t bitmask(uint32_t source, int length, int lower) {
+  uint32_t mask = (((uint32_t) 1) << length) - 1;
+  mask <<= lower;
+  mask &= source;
+  mask >>= lower;
+  return mask;
+}
+
 Block *evict(bool lru, Set *s, int slots) {
   // check if blocks are valid, load if not
   // otherwise check for lru or fifo, select for each
   // update data structure and "clean" blocks
-  bool wrote_invalid = false;
   int lru_index = -1;
-  int lru_ts = -1;
+  unsigned int lru_ts = 0;
   int fifo_index = -1;
-  int fifo_ts = -1;
+  unsigned int fifo_ts = 0;
   Block *b = s->blocks;
   
   for (int i = 0; i < slots; i++) {
@@ -82,24 +89,22 @@ Block *evict(bool lru, Set *s, int slots) {
     }
     else {
       if (lru) {
-	if (lru_ts == -1 || b->access_ts < lru_ts) {
+	if (lru_index == -1 || b->access_ts < lru_ts) {
 	  lru_ts = b->access_ts;
 	  lru_index = i;
 	}
       }
       else {
-	if (fifo_ts == -1 || b->load_ts < fifo_ts) {
-	  fifo_ts = b->access_ts;
+	if (fifo_index == -1 || b->load_ts < fifo_ts) {
+	  fifo_ts = b->load_ts;
 	  fifo_index = i;
 	}
       }
     }
   }
 
-  if (!wrote_invalid) {
-    if (lru) { b =  s->blocks + lru_index; }
-    else { b = s->blocks + fifo_index; }
-  }
+  if (lru) { b =  s->blocks + lru_index; }
+  else { b = s->blocks + fifo_index; }
   return b;
 }
 
@@ -114,8 +119,9 @@ int main(int argc, char** argv) {
   int i_bits = find_pow(params->sets);  // index bits
   int t_bits = 32 - o_bits - i_bits;    // tag bits
 
-  Cache *c = create_cache(o_bits, params->sets, params->blocks);
-  Set *cache = c->sets;
+  printf("TB: %d, IB: %d, o_b: %d\n", t_bits, i_bits, o_bits);
+
+  Cache *c = create_cache(params->sets, params->blocks);
 
   char type;
   char hex[9];
@@ -126,17 +132,18 @@ int main(int argc, char** argv) {
     ts++;
     // bit mask to extract tag bits
     uint32_t adr = strtoul(hex, NULL, 16);
-    uint32_t tag = ((((uint32_t)(0 - 1)) << (32 - t_bits)) & adr) >> (32 - t_bits);
-    uint32_t index = ((((1 << i_bits) - 1) << o_bits) & adr) >> o_bits;
+    uint32_t tag = bitmask(adr, t_bits, i_bits + o_bits);
+    uint32_t index = bitmask(adr, i_bits, o_bits);
     bool hit = false;
 
-    Set *curr_set = &(cache[index]);
+    Set *curr_set = c->sets + index;
     Block *curr_block = curr_set->blocks;
     for (int i = 0; i < params->blocks; i++) {
       curr_block = curr_set->blocks + i;
       if (curr_block->valid && curr_block->tag == tag) {
 	hit = true;
 	curr_block->access_ts = ts;
+	break;
       }
     }
     
