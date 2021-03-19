@@ -35,5 +35,6 @@ typedef struct {
 Cache *create_cache(); // Constructor
 void destroy_cache(Cache *c); // Destructor
 void summary(Cache *c);
+void load_block(Block *b, uint32_t t, unsigned int ts);
 
 #endif // CACHE_H

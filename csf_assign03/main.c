@@ -64,6 +64,43 @@ int find_pow(int num) {
   return count;
 }
 
+Block *evict(bool lru, Set *s, int slots) {
+  // check if blocks are valid, load if not
+  // otherwise check for lru or fifo, select for each
+  // update data structure and "clean" blocks
+  bool wrote_invalid = false;
+  int lru_index = -1;
+  int lru_ts = -1;
+  int fifo_index = -1;
+  int fifo_ts = -1;
+  
+  for (int i = 0; i < slots; i++) {
+    Block *b = s->blocks + i;
+    if (!(b->valid)) {
+      return b;
+    }
+    else {
+      if (lru) {
+	if (lru_ts == -1 || b->access_ts < lru_ts) {
+	  lru_ts = b->access_ts;
+	  lru_index = i;
+	}
+      }
+      else {
+	if (fifo_ts == -1 || b->load_ts < fifo_ts) {
+	  fifo_ts = b->access_ts;
+	  fifo_index = i;
+	}
+      }
+    }
+  }
+
+  if (!wrote_invalid) {
+    if (lru) { return s->blocks + lru_index; }
+    else { return s->blocks + fifo_index; }
+  }
+}
+
 int main(int argc, char** argv) {
   struct SimulationParams *params = parse_args(argc, argv);
   if (!params) {
@@ -91,28 +128,60 @@ int main(int argc, char** argv) {
     uint32_t index = ((((1 << i_bits) - 1) << o_bits) & adr) >> o_bits;
     bool hit = false;
 
-    Set curr_set = cache[index];
+    Set *curr_set = &(cache[index]);
     for (int i = 0; i < params->blocks; i++) {
-      Block curr_block = *(curr_set->blocks + i);
-      if (curr_block->tag == tag) {
+      Block *curr_block = curr_set->blocks + i;
+      if (curr_block->valid && curr_block->tag == tag) {
 	hit = true;
 	curr_block->access_ts = ts;
       }
     }
-
-    if (!hit) {
-      // eviction
-    }
     
     if (type == 'l') {
       c->loads++;
-      // Handle reads
+      if (hit) {
+	c->load_hit++;
+	// update cycles?
+      }
+      else {
+	c->load_miss++;
+	// update cycles?
+	load_block(evict(params->evict_lfu, curr_set, params->blocks),
+		   tag, ts);
+      }
     }
     else if (type == 's') {
       c->stores++;
-      // Handle different write policies
+      if (hit) {
+	c->store_hit++;
+	if (params->through) {
+	  // write through
+	  // add cycles?
+	}
+	else {
+	  // write back
+	  curr_block->dirty = true;
+	  // update cycles?
+	}
+      }
+      else {
+	c->store_miss++;
+	if (params->allocate) {
+	  // write-allocate
+	  Block *b = evict(params->evict_lfu, curr_set, params->blocks);
+	  load_block(b, tag, ts);
+	  b->dirty = true;
+	}
+	else {
+	  // no write-allocate
+	  // no load to cache
+	  // add cycles?
+	}
+      }
     }
   }
+
+  summary(c);
 
   destroy_cache(c);
   free(params);

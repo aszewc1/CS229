@@ -51,3 +51,11 @@ void summary(Cache *c) {
 	 c->load_miss, c->store_hit, c->store_miss);
   printf("Total cycles: %d\n", c->cycles);
 }
+
+void load_block(Block *b, uint32_t t, unsigned int ts) {
+  b->tag = t;
+  b->valid = true;
+  b->dirty = false;
+  b->load_ts = ts;
+  b->access_ts = ts;
+}
