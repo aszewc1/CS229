@@ -11,7 +11,7 @@ Cache *create_cache(int num_sets, int set_assoc) {
 
   for (int i = 0; i < num_sets; i++) {
     Set *s = c->sets + i;
-    s->blocks = malloc(sizeof(Block) * set_assoc);
+    s->blocks = malloc(sizeof(Block) * set_assoc); 
     for (int j = 0; j < set_assoc; j++) {
       Block *b = s->blocks + j;
       b->tag = 0;
@@ -21,7 +21,7 @@ Cache *create_cache(int num_sets, int set_assoc) {
       b->access_ts = 0;
     }
   }
-  
+  /*Initialize stat values */
   c->loads = 0;
   c->stores = 0;
   c->load_hit = 0;
@@ -32,6 +32,7 @@ Cache *create_cache(int num_sets, int set_assoc) {
   return c;
 }
 
+/* deconstructor method to free memory*/
 void destroy_cache(Cache *c) {
   int n_s = c->num_sets;
   Set *set_ptr = c->sets;
@@ -43,6 +44,7 @@ void destroy_cache(Cache *c) {
   free(c);
 }
 
+/* Method to print summary information*/
 void summary(Cache *c) {
   printf("Total loads: %d\nTotal stores: %d\nLoad hits: %d\n",
 	 c->loads, c->stores, c->load_hit);
@@ -51,10 +53,11 @@ void summary(Cache *c) {
   printf("Total cycles: %d\n", c->cycles);
 }
 
+/* loads block */
 void load_block(Block *b, uint32_t t, unsigned int ts) {
   b->tag = t;
   b->valid = true;
-  b->dirty = false;
+  b->dirty = false; //false since load does not need write
   b->load_ts = ts;
   b->access_ts = ts;
 }
