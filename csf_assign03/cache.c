@@ -13,7 +13,7 @@ Cache *create_cache(int o, int num_sets, int set_assoc) {
     Set *s = c->sets + i;
     s->blocks = malloc(sizeof(Block) * set_assoc);
     for (int j = 0; j < set_assoc; j++) {
-      Block *b = set->blocks + j;
+      Block *b = s->blocks + j;
       b->tag = 0;
       b->valid = false;
       b->dirty = false;

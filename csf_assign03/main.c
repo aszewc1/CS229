@@ -73,9 +73,10 @@ Block *evict(bool lru, Set *s, int slots) {
   int lru_ts = -1;
   int fifo_index = -1;
   int fifo_ts = -1;
+  Block *b = s->blocks;
   
   for (int i = 0; i < slots; i++) {
-    Block *b = s->blocks + i;
+    b = s->blocks + i;
     if (!(b->valid)) {
       return b;
     }
@@ -96,9 +97,10 @@ Block *evict(bool lru, Set *s, int slots) {
   }
 
   if (!wrote_invalid) {
-    if (lru) { return s->blocks + lru_index; }
-    else { return s->blocks + fifo_index; }
+    if (lru) { b =  s->blocks + lru_index; }
+    else { b = s->blocks + fifo_index; }
   }
+  return b;
 }
 
 int main(int argc, char** argv) {
@@ -124,13 +126,14 @@ int main(int argc, char** argv) {
     ts++;
     // bit mask to extract tag bits
     uint32_t adr = strtoul(hex, NULL, 16);
-    uint32_t tag = (((0 - 1) << (32 - t_bits)) & adr) >> (32 - t_bits);
+    uint32_t tag = ((((uint32_t)(0 - 1)) << (32 - t_bits)) & adr) >> (32 - t_bits);
     uint32_t index = ((((1 << i_bits) - 1) << o_bits) & adr) >> o_bits;
     bool hit = false;
 
     Set *curr_set = &(cache[index]);
+    Block *curr_block = curr_set->blocks;
     for (int i = 0; i < params->blocks; i++) {
-      Block *curr_block = curr_set->blocks + i;
+      curr_block = curr_set->blocks + i;
       if (curr_block->valid && curr_block->tag == tag) {
 	hit = true;
 	curr_block->access_ts = ts;
@@ -141,11 +144,11 @@ int main(int argc, char** argv) {
       c->loads++;
       if (hit) {
 	c->load_hit++;
-	// update cycles?
+	c->cycles++;
       }
       else {
 	c->load_miss++;
-	// update cycles?
+	c->cycles += 100 * params->bytes / 4 + 1;
 	load_block(evict(params->evict_lfu, curr_set, params->blocks),
 		   tag, ts);
       }
@@ -156,12 +159,12 @@ int main(int argc, char** argv) {
 	c->store_hit++;
 	if (params->through) {
 	  // write through
-	  // add cycles?
+	  c->cycles += 100 * params->bytes / 4;
 	}
 	else {
 	  // write back
 	  curr_block->dirty = true;
-	  // update cycles?
+	  c->cycles++;
 	}
       }
       else {
@@ -170,12 +173,14 @@ int main(int argc, char** argv) {
 	  // write-allocate
 	  Block *b = evict(params->evict_lfu, curr_set, params->blocks);
 	  load_block(b, tag, ts);
-	  b->dirty = true;
+	  b->dirty = true; // only need for write back
+	  c->cycles += 100 * params->bytes / 4;
+	  if (params->through) { c->cycles += 100 * params->bytes / 4; }
+	  else { c->cycles++; }
 	}
 	else {
 	  // no write-allocate
-	  // no load to cache
-	  // add cycles?
+	  c->cycles += 100 * params->bytes / 4;
 	}
       }
     }
