@@ -15,7 +15,8 @@ Victor Wen		vwen2
 
 
 PART B: Best Cache
--For cases where cache policy is no-write allocate and write through, FIFO and LRU have almost identical trace statistics. Every value from load hit/miss and store hit/miss, to the total number of cycles is about the same. This shows that FIFO and LRU appear to have the same efficiency for no-write allocate and write through. 
+-For cases where cache policy is no-write allocate and write through, FIFO and LRU have almost identical trace statistics. Every value from load hit/miss and store hit/miss, to the
+total number of cycles is about the same. This shows that FIFO and LRU appear to have the same efficiency for no-write allocate and write through. 
 -For case where cache policy is set to write allocate and write through, FIFO and LRU perform similarly for most cases. However, if total number of sets is 512 or less, of 8 or less
 blocks, and block size of 16 bytes or less, LRU performs better. The cycle count in this case is close to identical, but when experimenting with different set size, block count, and
 block size, LRU has a smaller ratio of load misses and similar store hit/miss ratio. This helps to make the LRU a little more efficient than the FIFO since each load miss would cost
