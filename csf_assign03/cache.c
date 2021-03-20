@@ -191,7 +191,7 @@ void handle_store(SimulationParams *p, Cache *c,
     c->store_hit++;
     c->cycles++;
     if (p->through) { // write through
-      c->cycles += 100 * p->bytes / 4;
+      c->cycles += 100;
     }
     else { // write back
       b->dirty = true;
@@ -201,12 +201,12 @@ void handle_store(SimulationParams *p, Cache *c,
     c->store_miss++;
     if (p->allocate) { // write-allocate
       Block *bl = handle_write_back(p, c, s, t);
-      if (p->through) { c->cycles += 100 * p->bytes / 4; }
+      if (p->through) { c->cycles += 100; }
       else { bl->dirty = true; }
       c->cycles++;
     }
     else { // no write-allocate
-      c->cycles += 100 * p->bytes / 4;
+      c->cycles += 100;
     }
   }
 }
