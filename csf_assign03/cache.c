@@ -16,7 +16,8 @@ SimulationParams * parse_args(int argc, char** argv) {
   bool write_allocate = false;
   bool write_through = false;
   bool least_recently_used = false;
-   //checks user command line input to  determine type of cache policy.
+
+  // Check user command line input to  determine type of cache policy.
   if (strcmp("write-allocate", argv[4]) == 0) { write_allocate = true; }
   else if (strcmp("no-write-allocate", argv[4]) != 0) { return NULL; }
 
@@ -27,7 +28,8 @@ SimulationParams * parse_args(int argc, char** argv) {
 
   if (strcmp("lru", argv[6]) == 0) { least_recently_used = true; }
   else if (strcmp("fifo", argv[6]) != 0) { return NULL; }
-  //allocates memory
+
+  // Allocate memory and initialize struct
   SimulationParams * sim = malloc(sizeof(SimulationParams));
   sim->sets = num_sets;
   sim->blocks = num_blocks;
@@ -90,9 +92,9 @@ void summary(Cache *c) {
 void load_block(Block *b, uint32_t t, unsigned int ts) {
   b->tag = t;
   b->valid = true;
-  b->dirty = false;  //false since load does not need write
-  b->load_ts = ts;   //load time stamp
-  b->access_ts = ts; //access time stamp
+  b->dirty = false;  // Do not write on load
+  b->load_ts = ts;   // Load time stamp from main memory
+  b->access_ts = ts; // Access time stamp from main memory
 }
 
 bool is_pp2 (int num) { return ((num > 0) && ((num & (num - 1)) == 0)); }
@@ -118,6 +120,7 @@ Block *is_hit(Cache *c, Set *s, int slots, uint32_t t) {
   Block *curr_block = s->blocks;
   for (int i = 0; i < slots; i++) {
     curr_block = s->blocks + i;
+    // Searches set in cache for block with matching tag
     if (curr_block->valid && curr_block->tag == t) {
       curr_block->access_ts = c->ts;
       return curr_block;
@@ -127,9 +130,6 @@ Block *is_hit(Cache *c, Set *s, int slots, uint32_t t) {
 }
 
 Block *evict(bool lru, Set *s, int slots) {
-  // check if blocks are valid, load if not
-  // otherwise check for lru or fifo, select for each
-  // update data structure and "clean" blocks
   int lru_index = -1;
   unsigned int lru_ts = 0;
   int fifo_index = -1;
@@ -138,17 +138,20 @@ Block *evict(bool lru, Set *s, int slots) {
   
   for (int i = 0; i < slots; i++) {
     b = s->blocks + i;
+    // If any blocks invalid, load there preferentially
     if (!(b->valid)) {
       return b;
     }
     else {
       if (lru) {
+	// Find least-recently accessed block
 	if (lru_index == -1 || b->access_ts < lru_ts) {
 	  lru_ts = b->access_ts;
 	  lru_index = i;
 	}
       }
       else {
+	// Find first-loaded block
 	if (fifo_index == -1 || b->load_ts < fifo_ts) {
 	  fifo_ts = b->load_ts;
 	  fifo_index = i;
@@ -157,6 +160,7 @@ Block *evict(bool lru, Set *s, int slots) {
     }
   }
 
+  // Return correct block based on lru or fifo evict policy
   if (lru) { b = s->blocks + lru_index; }
   else { b = s->blocks + fifo_index; }
   return b;
@@ -165,9 +169,13 @@ Block *evict(bool lru, Set *s, int slots) {
 Block *handle_write_back(SimulationParams *p, Cache *c,
 			 Set *s, uint32_t t) {
   Block *b = evict(p->evict_lru, s, p->blocks);
+
+  // Need to write dirty block back to memory with write-back policy
   if (!p->through && b->dirty) {
     c->cycles += 100 * p->bytes / 4;
   }
+
+  // Need to read new block from memory with load miss or write-allocate
   load_block(b, t, c->ts);
   c->cycles += 100 * p->bytes / 4;
   return b;
@@ -180,6 +188,7 @@ void handle_load(SimulationParams *p, Cache *c,
   if (hit) { c->load_hit++; }
   else {
     c->load_miss++;
+    // Evict or fill invalid block
     handle_write_back(p, c, s, t);
   }
 }
@@ -190,10 +199,10 @@ void handle_store(SimulationParams *p, Cache *c,
   if (hit) {
     c->store_hit++;
     c->cycles++;
-    if (p->through) { // write through
+    if (p->through) {  // write-through
       c->cycles += 100;
     }
-    else { // write back
+    else {             // write-back
       b->dirty = true;
     }
   }
@@ -205,7 +214,7 @@ void handle_store(SimulationParams *p, Cache *c,
       else { bl->dirty = true; }
       c->cycles++;
     }
-    else { // no write-allocate
+    else {             // no-write-allocate
       c->cycles += 100;
     }
   }
