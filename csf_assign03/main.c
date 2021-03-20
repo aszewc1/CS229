@@ -72,6 +72,18 @@ uint32_t bitmask(uint32_t source, int length, int lower) {
   return mask;
 }
 
+Block *is_hit(Cache *c, Set *s, int slots, uint32_t t) {
+  Block *curr_block = s->blocks;
+  for (int i = 0; i < slots; i++) {
+    curr_block = s->blocks + i;
+    if (curr_block->valid && curr_block->tag == t) {
+      curr_block->access_ts = c->ts;
+      return curr_block;
+    }
+  }
+  return NULL;
+}
+
 Block *evict(bool lru, Set *s, int slots) {
   // check if blocks are valid, load if not
   // otherwise check for lru or fifo, select for each
@@ -119,6 +131,33 @@ Block *handle_write_back(struct SimulationParams *p, Cache *c,
   return b;
 }
 
+void handle_store(struct SimulationParams *p, Cache *c,
+		  Set *s, Block *b, uint32_t t, bool hit) {
+  c->stores++;
+  if (hit) {
+    c->store_hit++;
+    c->cycles++;
+    if (p->through) { // write through
+      c->cycles += 100 * p->bytes / 4;
+    }
+    else { // write back
+      b->dirty = true;
+    }
+  }
+  else {
+    c->store_miss++;
+    if (p->allocate) { // write-allocate
+      Block *bl = handle_write_back(p, c, s, t);
+      if (p->through) { c->cycles += 100 * p->bytes / 4; }
+      else { bl->dirty = true; }
+      c->cycles++;
+    }
+    else { // no write-allocate
+      c->cycles += 100 * p->bytes / 4;
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   struct SimulationParams *params = parse_args(argc, argv);
   if (!params) {
@@ -141,18 +180,9 @@ int main(int argc, char** argv) {
     uint32_t adr = strtoul(hex, NULL, 16);
     uint32_t tag = bitmask(adr, 32 - i_bits - o_bits, i_bits + o_bits);
     uint32_t index = bitmask(adr, i_bits, o_bits);
-    bool hit = false;
-
     Set *curr_set = c->sets + index;
-    Block *curr_block = curr_set->blocks;
-    for (int i = 0; i < params->blocks; i++) {
-      curr_block = curr_set->blocks + i;
-      if (curr_block->valid && curr_block->tag == tag) {
-	hit = true;
-	curr_block->access_ts = c->ts;
-	break;
-      }
-    }
+    Block *curr_block = is_hit(c, curr_set, params->blocks, tag);
+    bool hit = (curr_block != NULL);
     
     if (type == 'l') {
       c->loads++;
@@ -164,29 +194,7 @@ int main(int argc, char** argv) {
       }
     }
     else if (type == 's') {
-      c->stores++;
-      if (hit) {
-	c->store_hit++;
-	c->cycles++;
-	if (params->through) { // write through
-	  c->cycles += 100 * params->bytes / 4;
-	}
-	else { // write back
-	  curr_block->dirty = true;
-	}
-      }
-      else {
-	c->store_miss++;
-	if (params->allocate) { // write-allocate
-	  Block *b = handle_write_back(params, c, curr_set, tag);
-	  if (params->through) { c->cycles += 100 * params->bytes / 4; }
-	  else { b->dirty = true; }
-	  c->cycles++;
-	}
-	else { // no write-allocate
-	  c->cycles += 100 * params->bytes / 4;
-	}
-      }
+      handle_store(params, c, curr_set, curr_block, tag, hit);
     }
   }
 
