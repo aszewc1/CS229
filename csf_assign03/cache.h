@@ -21,7 +21,7 @@ typedef struct {
   int bytes;
   bool allocate;
   bool through;
-  bool evict_lfu;
+  bool evict_lru;
 } SimulationParams;
 
 typedef struct {
@@ -30,7 +30,6 @@ typedef struct {
   bool dirty;             // Track whether block needs write
   unsigned int load_ts;   // Load timestamp for block
   unsigned int access_ts; // Access timestamp for block
-  
 } Block;
 
 typedef struct {
@@ -69,7 +68,7 @@ void summary(Cache *c);
  * by setting timestamps clearing dirty bool
  * and restoring defaults otherwise.
  */
-void load_block(Block *b, uint32_t t, int ts);
+void load_block(Block *b, uint32_t t, unsigned int ts);
 
 /* Returns whether integer is positive power of 2 */
 bool is_pp2 (int num);

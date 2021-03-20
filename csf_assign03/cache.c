@@ -34,7 +34,7 @@ SimulationParams * parse_args(int argc, char** argv) {
   sim->bytes = num_bytes;
   sim->allocate = write_allocate;
   sim->through = write_through;
-  sim->evict_lfu = least_recently_used;
+  sim->evict_lru = least_recently_used;
   return sim;
 }
 
@@ -87,11 +87,11 @@ void summary(Cache *c) {
   printf("Total cycles: %d\n", c->cycles);
 }
 
-void load_block(Block *b, uint32_t t, int ts) {
+void load_block(Block *b, uint32_t t, unsigned int ts) {
   b->tag = t;
   b->valid = true;
-  b->dirty = false; //false since load does not need write
-  b->load_ts = ts; //load time stamp
+  b->dirty = false;  //false since load does not need write
+  b->load_ts = ts;   //load time stamp
   b->access_ts = ts; //access time stamp
 }
 
@@ -157,14 +157,14 @@ Block *evict(bool lru, Set *s, int slots) {
     }
   }
 
-  if (lru) { b =  s->blocks + lru_index; }
+  if (lru) { b = s->blocks + lru_index; }
   else { b = s->blocks + fifo_index; }
   return b;
 }
 
 Block *handle_write_back(SimulationParams *p, Cache *c,
 			 Set *s, uint32_t t) {
-  Block *b = evict(p->evict_lfu, s, p->blocks);
+  Block *b = evict(p->evict_lru, s, p->blocks);
   if (!p->through && b->dirty) {
     c->cycles += 100 * p->bytes / 4;
   }
