@@ -8,6 +8,14 @@
 #include <stdbool.h>
 #include "cache.h"
 
+/* Make structure for params
+*set is the number of sets in cache.
+*block is block number.
+*bytes is block size.
+*allocate is true if set to write-allocate.
+*through is true if set to write-through.
+*evict-lfu is true when block needs to be evicted.
+*/
 struct SimulationParams {
   int sets;
   int blocks;
@@ -20,6 +28,7 @@ struct SimulationParams {
 // Return whether an integer is a positive power of 2
 bool is_pp2 (int num) { return ((num > 0) && ((num & (num - 1)) == 0)); }
 
+/* Constructor to initialize values*/
 struct SimulationParams * parse_args(int argc, char** argv) {
   if (argc != 7) { return NULL; }
 
@@ -33,7 +42,7 @@ struct SimulationParams * parse_args(int argc, char** argv) {
   bool write_allocate = false;
   bool write_through = false;
   bool least_recently_used = false;
-
+   //checks user command line input to  determine type of cache policy.
   if (strcmp("write-allocate", argv[4]) == 0) { write_allocate = true; }
   else if (strcmp("no-write-allocate", argv[4]) != 0) { return NULL; }
 
@@ -44,7 +53,7 @@ struct SimulationParams * parse_args(int argc, char** argv) {
 
   if (strcmp("lru", argv[6]) == 0) { least_recently_used = true; }
   else if (strcmp("fifo", argv[6]) != 0) { return NULL; }
-
+  //allocates memory
   struct SimulationParams * sim = malloc(sizeof(struct SimulationParams));
   sim->sets = num_sets;
   sim->blocks = num_blocks;
@@ -183,7 +192,7 @@ int main(int argc, char** argv) {
     Set *curr_set = c->sets + index;
     Block *curr_block = is_hit(c, curr_set, params->blocks, tag);
     bool hit = (curr_block != NULL);
-    
+
     if (type == 'l') {
       c->loads++;
       c->cycles++;

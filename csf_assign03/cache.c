@@ -2,9 +2,9 @@
 // Victor Wen         vwen2
 
 #include "cache.h"
-
+/*Constructor to inizialize cache details*/
 Cache *create_cache(int num_sets, int set_assoc) {
-  Cache *c = malloc(sizeof(Cache));
+  Cache *c = malloc(sizeof(Cache)); //allocates memory 
   c->sets = malloc(sizeof(Set) * num_sets);
   c->num_sets = num_sets;
   c->set_assoc = set_assoc;
@@ -59,6 +59,6 @@ void load_block(Block *b, uint32_t t, int ts) {
   b->tag = t;
   b->valid = true;
   b->dirty = false; //false since load does not need write
-  b->load_ts = ts;
-  b->access_ts = ts;
+  b->load_ts = ts; //load time stamp
+  b->access_ts = ts; //access time stamp
 }
