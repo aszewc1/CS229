@@ -29,6 +29,7 @@ Cache *create_cache(int num_sets, int set_assoc) {
   c->store_hit = 0;
   c->store_miss = 0;
   c->cycles = 0;
+  c->ts = 0;
   return c;
 }
 
@@ -54,7 +55,7 @@ void summary(Cache *c) {
 }
 
 /* loads block */
-void load_block(Block *b, uint32_t t, unsigned int ts) {
+void load_block(Block *b, uint32_t t, int ts) {
   b->tag = t;
   b->valid = true;
   b->dirty = false; //false since load does not need write

@@ -108,6 +108,17 @@ Block *evict(bool lru, Set *s, int slots) {
   return b;
 }
 
+Block *handle_write_back(struct SimulationParams *p, Cache *c,
+			 Set *s, uint32_t t) {
+  Block *b = evict(p->evict_lfu, s, p->blocks);
+  if (!p->through && b->dirty) {
+    c->cycles += 100 * p->bytes / 4;
+  }
+  load_block(b, t, c->ts);
+  c->cycles += 100 * p->bytes / 4;
+  return b;
+}
+
 int main(int argc, char** argv) {
   struct SimulationParams *params = parse_args(argc, argv);
   if (!params) {
@@ -117,22 +128,18 @@ int main(int argc, char** argv) {
 
   int o_bits = find_pow(params->bytes); // offset bits
   int i_bits = find_pow(params->sets);  // index bits
-  int t_bits = 32 - o_bits - i_bits;    // tag bits
-
-  printf("TB: %d, IB: %d, o_b: %d\n", t_bits, i_bits, o_bits);
 
   Cache *c = create_cache(params->sets, params->blocks);
 
   char type;
   char hex[9];
   int nothing;
-  int ts = 0;
   
   while(scanf("%c 0x%s %d\n", &type, hex, &nothing) == 3) {
-    ts++;
+    c->ts++;
     // bit mask to extract tag bits
     uint32_t adr = strtoul(hex, NULL, 16);
-    uint32_t tag = bitmask(adr, t_bits, i_bits + o_bits);
+    uint32_t tag = bitmask(adr, 32 - i_bits - o_bits, i_bits + o_bits);
     uint32_t index = bitmask(adr, i_bits, o_bits);
     bool hit = false;
 
@@ -142,59 +149,41 @@ int main(int argc, char** argv) {
       curr_block = curr_set->blocks + i;
       if (curr_block->valid && curr_block->tag == tag) {
 	hit = true;
-	curr_block->access_ts = ts;
+	curr_block->access_ts = c->ts;
 	break;
       }
     }
     
     if (type == 'l') {
       c->loads++;
-      if (hit) {
-	c->load_hit++;
-	c->cycles++;
-      }
+      c->cycles++;
+      if (hit) { c->load_hit++; }
       else {
 	c->load_miss++;
-	Block *b = evict(params->evict_lfu, curr_set, params->blocks);
-	c->cycles += 100 * params->bytes / 4 + 1;
-	if (!params->through && b->dirty) {
-	  c->cycles += 100 * params->bytes / 4;
-	}
-	load_block(b, tag, ts);
+	handle_write_back(params, c, curr_set, tag);
       }
     }
     else if (type == 's') {
       c->stores++;
       if (hit) {
 	c->store_hit++;
-	if (params->through) {
-	  // write through
-	  c->cycles += 100 * params->bytes / 4 + 1;
+	c->cycles++;
+	if (params->through) { // write through
+	  c->cycles += 100 * params->bytes / 4;
 	}
-	else {
-	  // write back
+	else { // write back
 	  curr_block->dirty = true;
-	  c->cycles++;
 	}
       }
       else {
 	c->store_miss++;
-	if (params->allocate) {
-	  // write-allocate
-	  Block *b = evict(params->evict_lfu, curr_set, params->blocks);
-	  if (!params->through && b->dirty) {
-	    c->cycles += 100 * params->bytes / 4;
-	  }
-	  load_block(b, tag, ts);
-	  c->cycles += 100 * params->bytes / 4;
-	  if (params->through) { c->cycles += 100 * params->bytes / 4 + 1; }
-	  else {
-	    b->dirty = true;
-	    c->cycles++;
-	  }
+	if (params->allocate) { // write-allocate
+	  Block *b = handle_write_back(params, c, curr_set, tag);
+	  if (params->through) { c->cycles += 100 * params->bytes / 4; }
+	  else { b->dirty = true; }
+	  c->cycles++;
 	}
-	else {
-	  // no write-allocate
+	else { // no write-allocate
 	  c->cycles += 100 * params->bytes / 4;
 	}
       }

@@ -30,11 +30,12 @@ typedef struct {
   int store_hit;          // Number of hits during store
   int store_miss;         // Number of misses during store
   int cycles;             // Total cycles
+  int ts;                 // Time stamp for lru and fifo
 } Cache;
 
 Cache *create_cache(int num_sets, int set_assoc); // Constructor
 void destroy_cache(Cache *c); // Destructor
 void summary(Cache *c);
-void load_block(Block *b, uint32_t t, unsigned int ts);
+void load_block(Block *b, uint32_t t, int ts);
 
 #endif // CACHE_H
