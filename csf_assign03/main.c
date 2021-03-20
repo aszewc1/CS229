@@ -155,9 +155,12 @@ int main(int argc, char** argv) {
       }
       else {
 	c->load_miss++;
+	Block *b = evict(params->evict_lfu, curr_set, params->blocks);
 	c->cycles += 100 * params->bytes / 4 + 1;
-	load_block(evict(params->evict_lfu, curr_set, params->blocks),
-		   tag, ts);
+	if (!params->through && b->dirty) {
+	  c->cycles += 100 * params->bytes / 4;
+	}
+	load_block(b, tag, ts);
       }
     }
     else if (type == 's') {
@@ -166,7 +169,7 @@ int main(int argc, char** argv) {
 	c->store_hit++;
 	if (params->through) {
 	  // write through
-	  c->cycles += 100 * params->bytes / 4;
+	  c->cycles += 100 * params->bytes / 4 + 1;
 	}
 	else {
 	  // write back
@@ -179,11 +182,16 @@ int main(int argc, char** argv) {
 	if (params->allocate) {
 	  // write-allocate
 	  Block *b = evict(params->evict_lfu, curr_set, params->blocks);
+	  if (!params->through && b->dirty) {
+	    c->cycles += 100 * params->bytes / 4;
+	  }
 	  load_block(b, tag, ts);
-	  b->dirty = true; // only need for write back
 	  c->cycles += 100 * params->bytes / 4;
-	  if (params->through) { c->cycles += 100 * params->bytes / 4; }
-	  else { c->cycles++; }
+	  if (params->through) { c->cycles += 100 * params->bytes / 4 + 1; }
+	  else {
+	    b->dirty = true;
+	    c->cycles++;
+	  }
 	}
 	else {
 	  // no write-allocate
