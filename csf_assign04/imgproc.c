@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     printUsg();
   } else if (argc == 2 && strcmp("list", argv[1]) == 0) {
     // Load Plugins
-    struct Plugin **plugins = malloc(sizeof(struct Plugin));
+    struct Plugin **plugins = malloc(50 * sizeof(struct Plugin));
     int numPlugins = loadPlugins(plugins);
     // Print plugin list
     printPlugins(plugins, numPlugins);
@@ -53,7 +53,6 @@ char *getPluginDir() {
     return dir;
   }
   return "./plugins/";
-  //return strcat(getenv("PATH"), "/plugins/");
 }
 
 int loadPlugins(struct Plugin **p) {
@@ -70,24 +69,25 @@ int loadPlugins(struct Plugin **p) {
     int len = strlen(name);
     // Check for proper extension
     if (len > 2 && strcmp((name+len-3), ".so") == 0) {
-      p = realloc(p, (c + 1) * sizeof(struct Plugin));
+      //p = realloc(p, (c + 1) * sizeof(struct Plugin));
       *(p + c) = createPlugin();
+
       // Store handle
       char *temp = malloc(256);
       strcpy(temp, pluginDir);
       strcat(temp, name);
-      void *h = dlopen(temp, RTLD_LAZY);
+      (*(p + c))->handle = dlopen(temp, RTLD_LAZY);
       free(temp);
-      if (!h) { printErr("bad plugin handle"); }
-      (*(p + c))->handle = h;
+      if (!(*(p + c))->handle) { printErr("bad plugin handle"); }
       
       // Store function addresses
-      loadFuncs(h, *(p + c));
+      loadFuncs((*(p + c))->handle, *(p + c));
       c++;
     }
   }
 
   if (closedir(openDIR)) { printErr("closedir failed"); }
+
   return c;
 }
 
@@ -103,6 +103,7 @@ struct Plugin *createPlugin() {
 
 void destroyPlugins(struct Plugin **p, int size) {
   for (int i = 0; i < size; i++) {
+    if (dlclose((*(p+i))->handle)) { printErr("could not unload lib"); }
     //free((*(p+i))->handle);
     //free(*(void**) (&(*(p+i))->get_plugin_name));
     //free(*(void**) (&(*(p+i))->get_plugin_desc));

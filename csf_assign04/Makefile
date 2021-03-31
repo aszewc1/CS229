@@ -1,7 +1,8 @@
 CC = gcc
 CFLAGS = -g -Wall -Wextra -pedantic -std=c11 -fPIC
 
-PLUGIN_SRCS = swapbg.c mirrorh.c mirrorv.c tile.c expose.c
+PLUGIN_SRCS = swapbg.c
+#mirrorh.c mirrorv.c tile.c expose.c
 SRCS = imgproc.c pnglite.c $(PLUGIN_SRCS)
 
 OBJS = $(SRCS:%.c=%.o)
