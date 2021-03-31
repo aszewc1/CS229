@@ -69,3 +69,10 @@ void loadFuncs(void *handle, struct Plugin *p);
  * and the total number of plugins.
  */
 void printPlugins(struct Plugin **p, int num);
+
+/*
+ * Method to return pointer to specific
+ * plugin required by exec/
+ */
+struct Plugin *findPlugin(struct Plugin **p,
+			  int size, const char *name);

@@ -13,12 +13,20 @@ int main(int argc, char **argv) {
     // Print plugin list
     printPlugins(plugins, numPlugins);
     destroyPlugins(plugins, numPlugins);
-  } else if (argc >= 3 && strcmp("exec", argv[1]) == 0) {
+  } else if (argc >= 5 && strcmp("exec", argv[1]) == 0) {
     // Load Plugins
     struct Plugin **plugins = malloc(sizeof(struct Plugin));
     int numPlugins = loadPlugins(plugins);
     // Load plugin from argv[2] and parse arguments
-    //if (args == NULL) { printErr("missing or invalid command line arguments"); }
+    struct Plugin *myP = findPlugin(plugins, numPlugins, argv[2]);
+    if (myP == NULL) { printErr("plugin not found"); }
+    void *args = myP->parse_arguments(argc - 5, argv + 5);
+    if (args == NULL) { printErr("missing or invalid command line arguments"); }
+    struct Image *in = img_read_png(argv[3]);
+    if (in == NULL) { printErr("image read fail"); }
+    struct Image *out = myP->transform_image(in, args);
+    if (out == NULL) { printErr("image transform fail"); }
+    if (!img_write_png(out, argv[4])) { printErr("image write fail"); }
     destroyPlugins(plugins, numPlugins);
   } else {
     printErr("unknown command name");
@@ -74,7 +82,7 @@ int loadPlugins(struct Plugin **p) {
       (*(p + c))->handle = h;
       
       // Store function addresses
-      loadFuncs((*(p + c))->handle, *(p + c));
+      loadFuncs(h, *(p + c));
       c++;
     }
   }
@@ -95,7 +103,7 @@ struct Plugin *createPlugin() {
 
 void destroyPlugins(struct Plugin **p, int size) {
   for (int i = 0; i < size; i++) {
-    free((*(p+i))->handle);
+    //free((*(p+i))->handle);
     //free(*(void**) (&(*(p+i))->get_plugin_name));
     //free(*(void**) (&(*(p+i))->get_plugin_desc));
     //free(*(void**) (&(*(p+i))->parse_arguments));
@@ -125,4 +133,14 @@ void printPlugins(struct Plugin **p, int num) {
 	   (*(p+i))->get_plugin_name(),
 	   (*(p+i))->get_plugin_desc());
   }
+}
+
+struct Plugin *findPlugin(struct Plugin **p,
+			  int size, const char *name) {
+  for (int i = 0; i < size; i++) {
+    if(strcmp((*(p+i))->get_plugin_name(), name) == 0) {
+      return *(p+i);
+    }
+  }
+  return NULL;
 }
