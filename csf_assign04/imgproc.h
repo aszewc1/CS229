@@ -43,7 +43,19 @@ char *getPluginDir();
  * array of Plugins structures with all relevant
  * information for Plugin manipulation
  */
-struct Plugin *loadPlugins();
+int loadPlugins(struct Plugin **p);
+
+/*
+ * Dynamically allocate memory for
+ * a single Plugin and its elements.
+ */
+struct Plugin *createPlugin();
+
+/*
+ * Method to free dynamically allocated
+ * plugin structs.
+ */
+void destroyPlugins(struct Plugin **p, int size);
 
 /*
  * Load functions associated with a
@@ -56,4 +68,4 @@ void loadFuncs(void *handle, struct Plugin *p);
  * given the plugin-storing data structure
  * and the total number of plugins.
  */
-void printPlugins(struct Plugin *p, int num);
+void printPlugins(struct Plugin **p, int num);
