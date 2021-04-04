@@ -27,6 +27,8 @@ int main(int argc, char **argv) {
     struct Image *out = myP->transform_image(in, args);
     if (out == NULL) { printErr("image transform fail"); }
     if (!img_write_png(out, argv[4])) { printErr("image write fail"); }
+    img_destroy(in);
+    img_destroy(out);
     destroyPlugins(plugins, numPlugins);
   } else {
     printErr("unknown command name");
@@ -93,22 +95,12 @@ int loadPlugins(struct Plugin **p) {
 
 struct Plugin *createPlugin() {
   struct Plugin *p = malloc(sizeof(struct Plugin));
-  //p->handle = malloc(sizeof(void *));
-  //*(void**) (&p->get_plugin_name) = malloc(sizeof(void *));
-  //*(void**) (&p->get_plugin_desc) = malloc(sizeof(void *));
-  //*(void**) (&p->parse_arguments) = malloc(sizeof(void *));
-  //*(void**) (&p->transform_image) = malloc(sizeof(void *));
   return p;
 }
 
 void destroyPlugins(struct Plugin **p, int size) {
   for (int i = 0; i < size; i++) {
     if (dlclose((*(p+i))->handle)) { printErr("could not unload lib"); }
-    //free((*(p+i))->handle);
-    //free(*(void**) (&(*(p+i))->get_plugin_name));
-    //free(*(void**) (&(*(p+i))->get_plugin_desc));
-    //free(*(void**) (&(*(p+i))->parse_arguments));
-    //free(*(void**) (&(*(p+i))->transform_image));
     free(*(p+i));
   }
   free(p);

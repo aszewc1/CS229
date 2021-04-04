@@ -8,11 +8,11 @@ struct Arguments {
 };
 
 const char *get_plugin_name(void) {
-	return "mirrorh";
+	return "mirrorv";
 }
 
 const char *get_plugin_desc(void) {
-	return "mirror image horizontally";
+	return "mirror image vertically";
 }
 
 void *parse_arguments(int num_args, char *args[]) {
@@ -36,10 +36,10 @@ struct Image *transform_image(struct Image *source, void *arg_data) {
 
   for (unsigned j = 0; j < source->height; j++) {
     for (unsigned i = 0; i < source->width; i++) {
-      int left_index = (source->width) * j + i;
-      int right_index = (source->width) * j + (source->width - 1 - i);
+      int top_index = (source->width) * j + i;
+      int bottom_index = (source->width) * (source->height - 1 - j) + i;
 
-      out->data[left_index] = source->data[right_index];
+      out->data[top_index] = source->data[bottom_index];
     }
   }
   

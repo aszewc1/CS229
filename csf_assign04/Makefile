@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall -Wextra -pedantic -std=c11 -fPIC
 
-PLUGIN_SRCS = swapbg.c
+PLUGIN_SRCS = swapbg.c mirrorh.c mirrorv.c
 #mirrorh.c mirrorv.c tile.c expose.c
 SRCS = imgproc.c pnglite.c $(PLUGIN_SRCS)
 
@@ -21,6 +21,10 @@ imgproc : imgproc.o image.o pnglite.o
 	$(CC) -export-dynamic -o $@ imgproc.o image.o pnglite.o -lz -ldl
 
 plugins/swapbg.so : swapbg.o
+
+plugins/mirrorh.so: mirrorh.o
+
+plugins/mirrorv.so: mirrorv.o
 
 clean :
 	rm -f *.o imgproc plugins/*.so depend.mak
