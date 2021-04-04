@@ -2,26 +2,26 @@
 #include "image_plugin.h"
 
 struct Arguments {
-	// This plugin doesn't accept any command line arguments;
-	// just define a single dummy field.
-	int dummy;
+  // This plugin doesn't accept any command line arguments;
+  // just define a single dummy field.
+  int dummy;
 };
 
 const char *get_plugin_name(void) {
-	return "mirrorv";
+  return "mirrorv";
 }
 
 const char *get_plugin_desc(void) {
-	return "mirror image vertically";
+  return "mirror image vertically";
 }
 
 void *parse_arguments(int num_args, char *args[]) {
-	(void) args; // this is just to avoid a warning about an unused parameter
-
-	if (num_args != 0) {
-		return NULL;
-	}
-	return calloc(1, sizeof(struct Arguments));
+  (void) args; // this is just to avoid a warning about an unused parameter
+  
+  if (num_args != 0) {
+    return NULL;
+  }
+  return calloc(1, sizeof(struct Arguments));
 }
 
 struct Image *transform_image(struct Image *source, void *arg_data) {
