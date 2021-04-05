@@ -10,23 +10,52 @@ int main(int argc, char **argv) {
     // Load Plugins
     struct Plugin **plugins = malloc(50 * sizeof(struct Plugin));
     int numPlugins = loadPlugins(plugins);
+    
     // Print plugin list
     printPlugins(plugins, numPlugins);
     destroyPlugins(plugins, numPlugins);
+    
   } else if (argc >= 5 && strcmp("exec", argv[1]) == 0) {
     // Load Plugins
     struct Plugin **plugins = malloc(sizeof(struct Plugin));
     int numPlugins = loadPlugins(plugins);
+    
     // Load plugin from argv[2] and parse arguments
     struct Plugin *myP = findPlugin(plugins, numPlugins, argv[2]);
-    if (myP == NULL) { printErr("plugin not found"); }
+    if (myP == NULL) {
+      destroyPlugins(plugins, numPlugins);
+      printErr("plugin not found");
+    }
+
+    // Parse plugin arguments
     void *args = myP->parse_arguments(argc - 5, argv + 5);
-    if (args == NULL) { printErr("missing or invalid command line arguments"); }
+    if (args == NULL) {
+      destroyPlugins(plugins, numPlugins);
+      printErr("missing or invalid command line arguments");
+    }
+
+    // Read initial image
     struct Image *in = img_read_png(argv[3]);
-    if (in == NULL) { printErr("image read fail"); }
+    if (in == NULL) {
+      destroyPlugins(plugins, numPlugins);
+      printErr("image read fail");
+    }
+
+    // Create output image
     struct Image *out = myP->transform_image(in, args);
-    if (out == NULL) { printErr("image transform fail"); }
-    if (!img_write_png(out, argv[4])) { printErr("image write fail"); }
+    if (out == NULL) {
+      img_destroy(in);
+      destroyPlugins(plugins, numPlugins);
+      printErr("image transform fail");
+    }
+    if (!img_write_png(out, argv[4])) {
+      img_destroy(in);
+      img_destroy(out);
+      destroyPlugins(plugins, numPlugins);
+      printErr("image write fail");
+    }
+
+    // Clean up
     img_destroy(in);
     img_destroy(out);
     destroyPlugins(plugins, numPlugins);
