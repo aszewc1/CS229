@@ -8,36 +8,36 @@ int main(int argc, char **argv) {
     printUsg();
   } else if (argc == 2 && strcmp("list", argv[1]) == 0) {
     // Load Plugins
-    struct Plugin **plugins = malloc(50 * sizeof(struct Plugin));
-    int numPlugins = loadPlugins(plugins);
+    struct Plugin *plugins = malloc(sizeof(struct Plugin));
+    int numPlugins = loadPlugins(&plugins);
     
     // Print plugin list
-    printPlugins(plugins, numPlugins);
-    destroyPlugins(plugins, numPlugins);
+    printPlugins(&plugins, numPlugins);
+    destroyPlugins(&plugins, numPlugins);
     
   } else if (argc >= 5 && strcmp("exec", argv[1]) == 0) {
     // Load Plugins
-    struct Plugin **plugins = malloc(sizeof(struct Plugin));
-    int numPlugins = loadPlugins(plugins);
+    struct Plugin *plugins = malloc(sizeof(struct Plugin));
+    int numPlugins = loadPlugins(&plugins);
     
     // Load plugin from argv[2] and parse arguments
-    struct Plugin *myP = findPlugin(plugins, numPlugins, argv[2]);
+    struct Plugin *myP = findPlugin(&plugins, numPlugins, argv[2]);
     if (myP == NULL) {
-      destroyPlugins(plugins, numPlugins);
+      destroyPlugins(&plugins, numPlugins);
       printErr("plugin not found");
     }
 
     // Parse plugin arguments
     void *args = myP->parse_arguments(argc - 5, argv + 5);
     if (args == NULL) {
-      destroyPlugins(plugins, numPlugins);
+      destroyPlugins(&plugins, numPlugins);
       printErr("missing or invalid command line arguments");
     }
 
     // Read initial image
     struct Image *in = img_read_png(argv[3]);
     if (in == NULL) {
-      destroyPlugins(plugins, numPlugins);
+      destroyPlugins(&plugins, numPlugins);
       printErr("image read fail");
     }
 
@@ -45,20 +45,20 @@ int main(int argc, char **argv) {
     struct Image *out = myP->transform_image(in, args);
     if (out == NULL) {
       img_destroy(in);
-      destroyPlugins(plugins, numPlugins);
+      destroyPlugins(&plugins, numPlugins);
       printErr("image transform fail");
     }
     if (!img_write_png(out, argv[4])) {
       img_destroy(in);
       img_destroy(out);
-      destroyPlugins(plugins, numPlugins);
+      destroyPlugins(&plugins, numPlugins);
       printErr("image write fail");
     }
 
     // Clean up
     img_destroy(in);
     img_destroy(out);
-    destroyPlugins(plugins, numPlugins);
+    destroyPlugins(&plugins, numPlugins);
   } else {
     printErr("unknown command name");
   }
@@ -100,20 +100,20 @@ int loadPlugins(struct Plugin **p) {
     int len = strlen(name);
     // Check for proper extension
     if (len > 2 && strcmp((name+len-3), ".so") == 0) {
-      //p = realloc(p, (c + 1) * sizeof(struct Plugin));
-      *(p + c) = createPlugin();
+      *p = realloc(*p, (c + 1) * sizeof(struct Plugin));
+      //*(p + c) = createPlugin();
 
       // Store handle
       char *temp = malloc(256);
       strcpy(temp, pluginDir);
       strcat(temp, "/");
       strcat(temp, name);
-      (*(p + c))->handle = dlopen(temp, RTLD_LAZY);
+      ((*p) + c)->handle = dlopen(temp, RTLD_LAZY);
       free(temp);
-      if (!(*(p + c))->handle) { printErr("bad plugin handle"); }
+      if (!((*p) + c)->handle) { printErr("bad plugin handle"); }
       
       // Store function addresses
-      loadFuncs((*(p + c))->handle, *(p + c));
+      loadFuncs(((*p) + c)->handle, (*p) + c);
       c++;
     }
   }
@@ -130,10 +130,9 @@ struct Plugin *createPlugin() {
 
 void destroyPlugins(struct Plugin **p, int size) {
   for (int i = 0; i < size; i++) {
-    if (dlclose((*(p+i))->handle)) { printErr("could not unload lib"); }
-    free(*(p+i));
+    if (dlclose(((*p)+i)->handle)) { printErr("could not unload lib"); }
   }
-  free(p);
+  free(*p);
 }
 
 void loadFuncs(void *handle, struct Plugin *p) {
@@ -153,16 +152,16 @@ void printPlugins(struct Plugin **p, int num) {
   printf("Loaded %d plugin(s)\n", num);
   for (int i = 0; i < num; i++) {
     printf("%8s: %s\n",
-	   (*(p+i))->get_plugin_name(),
-	   (*(p+i))->get_plugin_desc());
+	   ((*p)+i)->get_plugin_name(),
+	   ((*p)+i)->get_plugin_desc());
   }
 }
 
 struct Plugin *findPlugin(struct Plugin **p,
 			  int size, const char *name) {
   for (int i = 0; i < size; i++) {
-    if(strcmp((*(p+i))->get_plugin_name(), name) == 0) {
-      return *(p+i);
+    if(strcmp(((*p)+i)->get_plugin_name(), name) == 0) {
+      return (*p)+i;
     }
   }
   return NULL;
