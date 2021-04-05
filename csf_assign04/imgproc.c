@@ -83,7 +83,7 @@ char *getPluginDir() {
   if (dir != NULL) {
     return dir;
   }
-  return "./plugins/";
+  return "./plugins";
 }
 
 int loadPlugins(struct Plugin **p) {
@@ -106,6 +106,7 @@ int loadPlugins(struct Plugin **p) {
       // Store handle
       char *temp = malloc(256);
       strcpy(temp, pluginDir);
+      strcat(temp, "/");
       strcat(temp, name);
       (*(p + c))->handle = dlopen(temp, RTLD_LAZY);
       free(temp);

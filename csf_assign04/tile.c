@@ -1,3 +1,6 @@
+// Alexandra Szewc    aszewc1
+// Victor Wen         vwen2
+
 #include <stdlib.h>
 #include "image_plugin.h"
 
@@ -17,6 +20,8 @@ void *parse_arguments(int num_args, char *args[]) {
   if (num_args != 1) {
     return NULL;
   }
+
+  // Must have integer argument
   int n = atoi(*args);
   if (!n) {
     return NULL;
@@ -38,13 +43,25 @@ struct Image *transform_image(struct Image *source, void *arg_data) {
     return NULL;
   }
 
+  // Generate tiled output
+  unsigned modh = source->height % N;
+  unsigned modw = source->width % N;
+  
   for (unsigned nj = 0; nj < N; nj++) {
     for (unsigned ni = 0; ni < N; ni++) {
-      for (unsigned j = 0; j < source->height; j+=N) {
-	for (unsigned i = 0; i < source->width; i+=N) {
-	  int output_index = (source->width) * (nj * (source->height/N) + j/N)
-	    + (ni * source->width / N) + (i/N);
-	  int source_index = (source->width) * j + i;
+      
+      unsigned eh = (nj < modh)? nj : modh;
+      unsigned ew = (ni < modw)? ni : modw;
+
+      unsigned exh = (nj < modh)? 1 : 0;
+      unsigned exw = (ni < modw)? 1 : 0;
+
+      for (unsigned j = 0; j < source->height/N + exh; j++) {
+	for (unsigned i = 0; i < source->width/N + exw; i++) {
+	  int output_index = (source->width)
+	    * (nj * (source->height / N) + j + eh)
+	    + (ni * (source->width / N)) + i + ew;
+	  int source_index = (source->width) * j * N + i * N;	  
 	  
 	  out->data[output_index] = source->data[source_index];
 	}

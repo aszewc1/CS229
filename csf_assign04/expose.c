@@ -1,7 +1,5 @@
-//
-// Example plugin: it just swaps the blue and green color component
-// values for each pixel in the source image.
-//
+// Alexandra Szewc    aszewc1
+// Victor Wen         vwen2
 
 #include <stdlib.h>
 #include "image_plugin.h"

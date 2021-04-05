@@ -1,3 +1,6 @@
+// Alexandra Szewc    aszewc1
+// Victor Wen         vwen2
+
 #include <stdlib.h>
 #include "image_plugin.h"
 
