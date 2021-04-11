@@ -131,7 +131,7 @@ bool Calc::isAlphabetic(const string &var) {
 
 bool Calc::isNumeric(const string &var) {
   for (char c : var) {
-    if (c < 48 || c > 57) {
+    if ((c < 48 || c > 57) && c != 45) {
       return false;
     }
   }
