@@ -45,6 +45,9 @@ void testEvalLiteral(TestObjs *objs) {
 	result = 0;
 	ASSERT(0 != calc_eval(objs->calc, "42", &result));
 	ASSERT(42 == result);
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "1024", &result));
+        ASSERT(1024 == result);
 }
 
 void testAssignment(TestObjs *objs) {
@@ -60,6 +63,10 @@ void testAssignment(TestObjs *objs) {
 
 	result = 0;
 	ASSERT(0 != calc_eval(objs->calc, "b = a", &result));
+	ASSERT(4 == result);
+
+	result = 0;
+	ASSERT(0 != calc_eval(objs->calc, "c = b", &result));
 	ASSERT(4 == result);
 }
 
@@ -81,6 +88,30 @@ void testComputation(TestObjs *objs) {
 	result = 0;
 	ASSERT(0 != calc_eval(objs->calc, "33 / 15", &result));
 	ASSERT(2 == result);
+
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "33 * 0", &result));
+        ASSERT(0 == result);
+
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "87 / 15", &result));
+        ASSERT(5 == result);
+	/*Test that program can handle negative results */
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "33 - 34", &result));
+        ASSERT(-1 == result);
+	/*Test that program can handle calculation if first number is negative */
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "-33 + 34", &result));
+        ASSERT(1 == result);
+	/*Test that program can handle negative multiplication */
+        result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "-40 * -1", &result));
+        ASSERT(40 == result);
+	/*Test that program can handle negative subtraction*/
+        result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "-5 - -35", &result));
+        ASSERT(30 == result);
 }
 
 void testComputationAndAssignment(TestObjs *objs) {
@@ -113,6 +144,17 @@ void testComputationAndAssignment(TestObjs *objs) {
 	result = 0;
 	ASSERT(0 != calc_eval(objs->calc, "d", &result));
 	ASSERT(2 == result);
+	/*Test that program can correctly caculate with assigned variables only */
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "e = a + b", &result));
+        ASSERT(66 == result);
+	result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "e = d * c", &result));
+        ASSERT(990 == result);
+        result = 0;
+        ASSERT(0 != calc_eval(objs->calc, "e = b - c", &result));
+        ASSERT(-477 == result);
+
 }
 
 void testUpdate(TestObjs *objs) {
@@ -124,6 +166,10 @@ void testUpdate(TestObjs *objs) {
 	result = 0;
 	ASSERT(0 != calc_eval(objs->calc, "a = a + 1", &result));
 	ASSERT(3 == result);
+	ASSERT(0 != calc_eval(objs->calc, "b = a * 10", &result));
+	ASSERT(30 == result);
+	ASSERT(0 != calc_eval(objs->calc, "b = a + b", &result));
+	ASSERT(33 == result);
 }
 
 void testInvalidExpr(TestObjs *objs) {
@@ -137,4 +183,8 @@ void testInvalidExpr(TestObjs *objs) {
 	ASSERT(0 == calc_eval(objs->calc, "a", &result));
 	/* attempt to divide by 0 */
 	ASSERT(0 == calc_eval(objs->calc, "4 / 0", &result));
+	/* bad syntax */
+        ASSERT(0 == calc_eval(objs->calc, "1 -1", &result));
+	/* bad syntax */
+        ASSERT(0 == calc_eval(objs->calc, ".5 / 4", &result));
 }
