@@ -1,31 +1,42 @@
+// Alexandra Szewc      aszewc1@jhu.edu
+// Victor Wen           vwen2@jhu.edu
+
 #include <stdio.h>      /* for snprintf */
+#include <stdlib.h>     /* for atoi */
 #include "csapp.h"
 #include "calc.h"
-#include <string>
 
 /* buffer size for reading lines of input from user */
 #define LINEBUF_SIZE 1024
 
-void chat_with_client(struct Calc *calc, int infd, int outfd);
+int chat_with_client(struct Calc *calc, int infd, int outfd);
 
 int main(int argc, char **argv) {
-  if (arc != 2) { return 1; }
+  if (argc != 2) { return 1; }
 
-  int TCP_port = stoi(argv[1]);
+  int TCP_port = atoi(argv[1]);
 
   if (TCP_port < 1024) { return 1; }
-  
+
   struct Calc *calc = calc_create();
   
+  int listenfd = open_listenfd(argv[1]);
+  int clientfd = 0;
+  
   /* chat with client using standard input and standard output */
-  chat_with_client(calc, 0, 1);
+  int shutdown = 0;
+  while (!shutdown) {
+    clientfd = Accept(listenfd, NULL, NULL);
+    shutdown = chat_with_client(calc, clientfd, clientfd);
+    close(clientfd);
+  } 
   
   calc_destroy(calc);
   
   return 0;
 }
 
-void chat_with_client(struct Calc *calc, int infd, int outfd) {
+int chat_with_client(struct Calc *calc, int infd, int outfd) {
   rio_t in;
   char linebuf[LINEBUF_SIZE];
   
@@ -44,11 +55,13 @@ void chat_with_client(struct Calc *calc, int infd, int outfd) {
       /* error or end of input */
       done = 1;
     } else if (strcmp(linebuf, "quit\n") == 0
-	       || strcmp(linebuf, "quit\r\n") == 0
-	       || strcmp(linebuf, "shutdown\n") == 0
-	       || strcmp(linebuf, "shutdown\r\n") == 0) {
+	       || strcmp(linebuf, "quit\r\n") == 0) {
       /* quit command */
       done = 1;
+    } else if (strcmp(linebuf, "shutdown\n") == 0
+	       || strcmp(linebuf, "shutdown\r\n") == 0) {
+      /* server shutdown */
+      return 1;
     } else {
       /* process input line */
       int result;
@@ -64,4 +77,5 @@ void chat_with_client(struct Calc *calc, int infd, int outfd) {
       }
     }
   }
+  return 0;
 }
