@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
   int shutdown = 0;
   while (!shutdown) {
     clientfd = Accept(listenfd, NULL, NULL);
+    if (clientfd < 0) { return 1; }
     shutdown = chat_with_client(calc, clientfd, clientfd);
     close(clientfd);
   } 
