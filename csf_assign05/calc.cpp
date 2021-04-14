@@ -74,6 +74,8 @@ int Calc::evalExpr(const string &expr, int &result) {
   return evalOpr(expr, result);
 }
 
+// Method to evaluate expression with
+// no assignment to a variable
 int Calc::evalOpr(const string &expr, int &result) {
   stringstream ss(expr);
   string var1, var2, op;
@@ -82,6 +84,7 @@ int Calc::evalOpr(const string &expr, int &result) {
   ss >> var1 >> op >> var2;
 
   if (!var1.empty()) {
+    // Deal with one operand
     if (op.empty()) {
       if (getVal(var1, val1)) {
 	result = val1;
@@ -89,6 +92,7 @@ int Calc::evalOpr(const string &expr, int &result) {
       }
     }
 
+    // Deal with operator and two operands
     if (!op.empty() && !var2.empty()) {
       if (getVal(var1, val1) && getVal(var2, val2)
 	  && op.length() == 1) {
@@ -99,6 +103,8 @@ int Calc::evalOpr(const string &expr, int &result) {
   return 0;
 }
 
+// Method to evaluate expression
+// with two operands and an operator
 int Calc::evalOp(int l, int op, int r, int &res) {
   if (op == 47 && r == 0) return 0;
 
@@ -120,6 +126,7 @@ int Calc::evalOp(int l, int op, int r, int &res) {
   }
 }
 
+// Method to check if a string is all alphabetical
 bool Calc::isAlphabetic(const string &var) {
   for (char c : var) {
     if ((c < 65 || c > 90) && (c < 97 || c > 122)) {
@@ -129,6 +136,8 @@ bool Calc::isAlphabetic(const string &var) {
   return true;
 }
 
+// Method to check if a string only contains
+// numerical characters
 bool Calc::isNumeric(const string &var) {
   for (char c : var) {
     if ((c < 48 || c > 57) && c != 45) {
@@ -138,6 +147,9 @@ bool Calc::isNumeric(const string &var) {
   return true;
 }
 
+// Method to return the value of
+// an operand whether it is a variable
+// or a numeric string
 bool Calc::getVal(string &var, int &val) {
   if (isAlphabetic(var)) {
     map<string, int>::iterator it = this->vars.find(var);
