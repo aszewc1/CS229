@@ -3,6 +3,7 @@
 
 #include <stdio.h>      /* for snprintf */
 #include <stdlib.h>     /* for atoi */
+#include <pthread.h>
 #include "csapp.h"
 #include "calc.h"
 
@@ -17,13 +18,13 @@ struct Client {
 };
 
 struct Client *create_client_connection(struct Calc *s, int socket);
+void *worker(void *arg);
 int chat_with_client(struct Calc *calc, int infd, int outfd);
 
 int main(int argc, char **argv) {
   if (argc != 2) { return 1; }
 
   int TCP_port = atoi(argv[1]);
-
   if (TCP_port < 1024) { return 1; }
 
   struct Calc *calc = calc_create();
@@ -36,8 +37,13 @@ int main(int argc, char **argv) {
   while (!shutdown) {
     clientfd = Accept(listenfd, NULL, NULL);
     if (clientfd < 0) { return 1; }
-    shutdown = chat_with_client(calc, clientfd, clientfd);
-    close(clientfd);
+    
+    struct Client *conn = create_client_connection(calc, clientfd);
+
+    pthread_t thr_id;
+    if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
+      fatal("pthread_create failed");
+    }
   } 
   
   calc_destroy(calc);
@@ -99,6 +105,16 @@ struct Client *create_client_connection(struct Calc *s, int socket) {
 // Starts new thread for each accepted client connection.
 // Takes a dynamycally-allocated instance of the struct
 // Client type as argument.
-void thread_start_function(struct Client* conn) {
+void *worker(void *arg) {
+  struct Client *info = arg;
   
+  pthread_detach(pthread_self());
+
+  shutdown = chat_with_client(info->shared_calc,
+			      info->clientfd,
+			      info->clientfd);
+  close(info->clientfd);
+  free(info);
+
+  return NULL;
 }
