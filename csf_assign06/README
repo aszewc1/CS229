@@ -1,3 +1,5 @@
 Alexandra Szewc     aszewc1@jhu.edu
+ - added pthread functionality to calcServer
+ - added mutex to calc.cpp
 
 Victor Wen          vwen2@jhu.edu

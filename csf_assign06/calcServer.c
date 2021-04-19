@@ -110,9 +110,9 @@ void *worker(void *arg) {
   
   pthread_detach(pthread_self());
 
-  int shutdown = chat_with_client(info->shared_calc,
-			      info->clientfd,
-			      info->clientfd);
+  chat_with_client(info->shared_calc,
+		   info->clientfd,
+		   info->clientfd);
   close(info->clientfd);
   free(info);
 

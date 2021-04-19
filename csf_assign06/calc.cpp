@@ -5,6 +5,10 @@
 #include <string>
 #include <map>
 #include <sstream>
+extern "C" {
+// For synchronization
+#include <pthread.h>
+}
 
 using std::string;       using std::map;
 using std::stringstream; using std::getline;
@@ -14,6 +18,7 @@ private:
   // fields
   map<string, int> vars;
   int size;
+  pthread_mutex_t lock;
   
 public:
   // public member functions
