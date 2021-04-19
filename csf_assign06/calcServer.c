@@ -9,6 +9,14 @@
 /* buffer size for reading lines of input from user */
 #define LINEBUF_SIZE 1024
 
+// Struct representing data of individual client connections.
+struct Client {
+  // fields
+  int clientfd;
+  struct Calc *shared_calc;
+};
+
+struct Client *create_client_connection(struct Calc *s, int socket);
 int chat_with_client(struct Calc *calc, int infd, int outfd);
 
 int main(int argc, char **argv) {
@@ -79,4 +87,18 @@ int chat_with_client(struct Calc *calc, int infd, int outfd) {
     }
   }
   return 0;
+}
+
+struct Client *create_client_connection(struct Calc *s, int socket) {
+  struct Client *client_connection = malloc(sizeof(struct Client));
+  client_connection->shared_calc = s;
+  client_conneciton->clientfd = socket;
+  return client_connection;
+}
+
+// Starts new thread for each accepted client connection.
+// Takes a dynamycally-allocated instance of the struct
+// Client type as argument.
+void thread_start_function(struct Client* conn) {
+  
 }
