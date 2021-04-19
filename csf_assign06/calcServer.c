@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
     pthread_t thr_id;
     if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
-      fatal("pthread_create failed");
+      return 1;
     }
   } 
   
@@ -98,7 +98,7 @@ int chat_with_client(struct Calc *calc, int infd, int outfd) {
 struct Client *create_client_connection(struct Calc *s, int socket) {
   struct Client *client_connection = malloc(sizeof(struct Client));
   client_connection->shared_calc = s;
-  client_conneciton->clientfd = socket;
+  client_connection->clientfd = socket;
   return client_connection;
 }
 
@@ -110,7 +110,7 @@ void *worker(void *arg) {
   
   pthread_detach(pthread_self());
 
-  shutdown = chat_with_client(info->shared_calc,
+  int shutdown = chat_with_client(info->shared_calc,
 			      info->clientfd,
 			      info->clientfd);
   close(info->clientfd);
