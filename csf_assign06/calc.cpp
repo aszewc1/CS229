@@ -93,7 +93,7 @@ int Calc::evalExpr(const string &expr, int &result) {
   }
 
   // Deal with no assignment to var
-  ret evalOpr(expr, result);  
+  return evalOpr(expr, result);  
 }
 
 // Method to evaluate expression with
