@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     if (clientfd < 0) { return 1; }
     shutdown = chat_with_client(calc, clientfd, clientfd);
     close(clientfd);
-  } 
+  }
   
   calc_destroy(calc);
   
