@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
   struct Calc *calc = calc_create();
   
   int listenfd = open_listenfd(argv[1]);
+  if (listenfd < 0) { return 1; } 
   int clientfd = 0;
   
   /* chat with client using standard input and standard output */
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
       return 1;
     }
   } 
-  
+  close(listenfd);
   calc_destroy(calc);
   
   return 0;

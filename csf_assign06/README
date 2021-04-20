@@ -1,3 +1,16 @@
+The calculator instance's shared data was made safe by
+using the mutex synchronization object. This was done
+by adding a mutex field to the Calc struct, initializing
+it in the Calc constructor, and destroying it in the
+Calc destructor. The mutex was locked and unlocked
+around the critical section of the entire calc_eval
+function in Calc, which is the wrapper for all the
+computation performed by Calc. This was determined
+as the critical section because each calculation
+should finish executing and accessing/modifying any
+variables before the next calculation is allowed to
+begin.
+
 Alexandra Szewc     aszewc1@jhu.edu
  - added pthread functionality to calcServer
  - added mutex to calc.cpp

@@ -26,6 +26,7 @@ public:
   ~Calc();
 
   int evalExpr(const string &expr, int &result);
+  pthread_mutex_t *getLock() { return &lock; }
 
 private:
   // private member functions
@@ -45,7 +46,15 @@ extern "C" void calc_destroy(struct Calc *calc) {
 }
 
 extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
-    return calc->evalExpr(expr, *result);
+  // First lock the mutex
+  pthread_mutex_lock(calc->getLock());
+  
+  int ret = calc->evalExpr(expr, *result);
+
+  // Now unlock the mutex
+  pthread_mutex_unlock(calc->getLock());
+  
+  return ret;
 }
 
 Calc::Calc() : size(0) {
@@ -68,9 +77,6 @@ Calc::~Calc() {
 // Outsource handling of first two
 // expressions to evalOpr
 int Calc::evalExpr(const string &expr, int &result) {
-  // First lock the mutex
-  pthread_mutex_lock(&this->lock);
-
   stringstream ss(expr);
   string var, op, rest;
 
@@ -87,12 +93,7 @@ int Calc::evalExpr(const string &expr, int &result) {
   }
 
   // Deal with no assignment to var
-  int ret = evalOpr(expr, result);
-
-  // Now unlock the mutex
-  pthread_mutex_unlock(&this->lock);
-  
-  return ret;
+  ret evalOpr(expr, result);  
 }
 
 // Method to evaluate expression with
