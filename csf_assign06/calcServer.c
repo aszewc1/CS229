@@ -5,17 +5,18 @@
 #include <stdlib.h>     /* for atoi */
 #include <pthread.h>
 #include <sys/select.h>
-#include <semaphore.h>
 #include <fcntl.h>
 #include "csapp.h"
 #include "calc.h"
 
 /* buffer size for reading lines of input from user */
 #define LINEBUF_SIZE 1024
-#define MAX_CLIENTS 100
+#define MAX_FD 1024
 
 /* volatile global variable to signal a shutdown */
 volatile int shutdown_volatile = 0;
+volatile int cnt = 0;
+sem_t semaphore;
 
 // Struct representing data of individual client connections.
 struct Client {
@@ -36,42 +37,74 @@ int main(int argc, char **argv) {
   if (TCP_port < 1024) { return 1; }
 
   struct Calc *calc = calc_create();
+  struct Client *client_conn[MAX_FD] = { 0 };
   
   int listenfd = open_listenfd(argv[1]);
   if (listenfd < 0) { return 1; } 
   int clientfd = 0;
   int maxfd = listenfd;
+
+  Sem_init(&semaphore, 0, MAX_FD);
   
   /* chat with client using standard input and standard output */
-  while (!shutdown_volatile) {
-    
-    // create server socket, add to active fd set
-    fd_set rfds;
+  while (!shutdown_volatile || cnt > 0) {
+    fd_set rfds, wfds;
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
     FD_ZERO(&rfds);
-    FD_SET(listenfd, &rfds);
-    
-    int rc = select(maxfd + 1, &rfds, NULL, NULL, NULL);
-    if (rc < 0) { return 1; }
+    FD_ZERO(&wfds);
 
-    struct Client *conn;
-    
+    // Determine which file descriptors should be in the read and write sets.
+    // It's counterproductive to put a connection file descriptor in the write
+    // set if it currently wants to read.
+    for (int fd = 0; fd <= maxfd; fd++) {
+      struct Client *conn = client_conn[fd];
+      if (conn) { FD_SET(fd, &rfds); FD_SET(fd, &wfds); }
+    }
+
+    // Server socket is always in readfds
+    FD_SET(listenfd, &rfds);
+
+    // Wait for a file descriptor to become ready
+    int rc = select(maxfd + 1, &rfds, &wfds, NULL, &tv);
+    if (rc < 0) { return 1; }
+    if (!rc) {
+      continue;
+    }
+
+    // If server socket became ready for reading, that means that
+    // a request for a new connection has arrived
     if (FD_ISSET(listenfd, &rfds)) {
       clientfd = Accept(listenfd, NULL, NULL);
-      make_nonblocking(clientfd);
+
+      // make clientfd nonblocking
+      //make_nonblocking(clientfd);
+
+      // update maxfd if necessary
       if (clientfd > maxfd) {
-	maxfd = clientfd;
+        maxfd = clientfd;
       }
-      conn = create_client_connection(calc, clientfd);
+
+      // create Connection object for connection
+      client_conn[clientfd] = create_client_connection(calc, clientfd);
     }
 
-    if (FD_ISSET(clientfd, &rfds)) {
-      pthread_t thr_id;
-      if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
-	return 1;
+    // Check for file descriptors that became ready to read
+    for (int fd = 0; fd <= maxfd; fd++) {
+      if (client_conn[fd] != NULL) {
+        struct Client *conn = client_conn[fd];
+        if (FD_ISSET(fd, &rfds) && FD_ISSET(fd, &wfds)) {
+	  pthread_t thr_id;
+	  if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
+	    return 1;
+	  }
+	  client_conn[fd] = NULL;
+        }
       }
     }
-   
-  } 
+  }
+  
   close(listenfd);
   calc_destroy(calc);
   
@@ -134,17 +167,21 @@ struct Client *create_client_connection(struct Calc *s, int socket) {
 // Client type as argument.
 void *worker(void *arg) {
   struct Client *info = arg;
+
+  P(&semaphore);
   
   pthread_detach(pthread_self());
+  cnt++;
 
-  sem_wait(calc_items(info->shared_calc));
-  
   if(chat_with_client(info->shared_calc,
 		      info->clientfd,
-		      info->clientfd))
-    shutdown_volatile= 1;
+		      info->clientfd)) {
+    shutdown_volatile = 1;
+  }
   
-  sem_post(calc_slots(info->shared_calc));
+  cnt--;
+  
+  V(&semaphore);
   
   close(info->clientfd);
   free(info);
