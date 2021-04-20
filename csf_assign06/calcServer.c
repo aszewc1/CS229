@@ -4,11 +4,18 @@
 #include <stdio.h>      /* for snprintf */
 #include <stdlib.h>     /* for atoi */
 #include <pthread.h>
+#include <sys/select.h>
+#include <semaphore.h>
+#include <fcntl.h>
 #include "csapp.h"
 #include "calc.h"
 
 /* buffer size for reading lines of input from user */
 #define LINEBUF_SIZE 1024
+#define MAX_CLIENTS 100
+
+/* volatile global variable to signal a shutdown */
+volatile int shutdown_volatile = 0;
 
 // Struct representing data of individual client connections.
 struct Client {
@@ -20,6 +27,7 @@ struct Client {
 struct Client *create_client_connection(struct Calc *s, int socket);
 void *worker(void *arg);
 int chat_with_client(struct Calc *calc, int infd, int outfd);
+void make_nonblocking(int fd);
 
 int main(int argc, char **argv) {
   if (argc != 2) { return 1; }
@@ -32,19 +40,37 @@ int main(int argc, char **argv) {
   int listenfd = open_listenfd(argv[1]);
   if (listenfd < 0) { return 1; } 
   int clientfd = 0;
+  int maxfd = listenfd;
   
   /* chat with client using standard input and standard output */
-  int shutdown = 0;
-  while (!shutdown) {
-    clientfd = Accept(listenfd, NULL, NULL);
-    if (clientfd < 0) { return 1; }
+  while (!shutdown_volatile) {
     
-    struct Client *conn = create_client_connection(calc, clientfd);
+    // create server socket, add to active fd set
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(listenfd, &rfds);
+    
+    int rc = select(maxfd + 1, &rfds, NULL, NULL, NULL);
+    if (rc < 0) { return 1; }
 
-    pthread_t thr_id;
-    if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
-      return 1;
+    struct Client *conn;
+    
+    if (FD_ISSET(listenfd, &rfds)) {
+      clientfd = Accept(listenfd, NULL, NULL);
+      make_nonblocking(clientfd);
+      if (clientfd > maxfd) {
+	maxfd = clientfd;
+      }
+      conn = create_client_connection(calc, clientfd);
     }
+
+    if (FD_ISSET(clientfd, &rfds)) {
+      pthread_t thr_id;
+      if (pthread_create(&thr_id, NULL, worker, conn) != 0) {
+	return 1;
+      }
+    }
+   
   } 
   close(listenfd);
   calc_destroy(calc);
@@ -111,11 +137,24 @@ void *worker(void *arg) {
   
   pthread_detach(pthread_self());
 
-  chat_with_client(info->shared_calc,
-		   info->clientfd,
-		   info->clientfd);
+  sem_wait(calc_items(info->shared_calc));
+  
+  if(chat_with_client(info->shared_calc,
+		      info->clientfd,
+		      info->clientfd))
+    shutdown_volatile= 1;
+  
+  sem_post(calc_slots(info->shared_calc));
+  
   close(info->clientfd);
   free(info);
 
   return NULL;
+}
+
+void make_nonblocking(int fd) {
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (flags < 0) { exit(1); }
+  flags |= O_NONBLOCK;
+  if (fcntl(fd, F_SETFL, flags) < 0) { exit(1); }
 }

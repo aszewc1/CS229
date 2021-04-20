@@ -8,6 +8,7 @@
 extern "C" {
 // For synchronization
 #include <pthread.h>
+#include <semaphore.h>
 }
 
 using std::string;       using std::map;
@@ -18,6 +19,7 @@ private:
   // fields
   map<string, int> vars;
   int size;
+  sem_t slots, items;
   pthread_mutex_t lock;
   
 public:
@@ -27,6 +29,8 @@ public:
 
   int evalExpr(const string &expr, int &result);
   pthread_mutex_t *getLock() { return &lock; }
+  sem_t *getItems() { return &items; }
+  sem_t *getSlots() { return &slots; }
 
 private:
   // private member functions
@@ -57,8 +61,19 @@ extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
   return ret;
 }
 
+extern "C" sem_t *calc_items(struct Calc *calc) {
+  return calc->getItems();
+}
+
+extern "C" sem_t *calc_slots(struct Calc *calc) {
+  return calc->getSlots();
+}
+
 Calc::Calc() : size(0) {
-  pthread_mutex_init(&lock, NULL);
+  // Initialize semaphore with 5 maximum clients
+  sem_init(&this->slots, 0, 5);
+  sem_init(&this->items, 0, 0);
+  pthread_mutex_init(&this->lock, NULL);
 }
 
 Calc::~Calc() {
