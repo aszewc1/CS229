@@ -22,8 +22,8 @@ private:
   
 public:
   // public member functions
-  Calc() : size(0)/*, vars(new map<string, int>)*/ {}
-  ~Calc() {}
+  Calc();
+  ~Calc();
 
   int evalExpr(const string &expr, int &result);
 
@@ -48,6 +48,14 @@ extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
     return calc->evalExpr(expr, *result);
 }
 
+Calc::Calc() : size(0) {
+  pthread_mutex_init(&lock, NULL);
+}
+
+Calc::~Calc() {
+  pthread_mutex_destroy(&lock);
+}
+
 // Verify that the form of an expression
 // matches one of the four formats given
 // in the assignment:
@@ -60,6 +68,9 @@ extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
 // Outsource handling of first two
 // expressions to evalOpr
 int Calc::evalExpr(const string &expr, int &result) {
+  // First lock the mutex
+  pthread_mutex_lock(&this->lock);
+
   stringstream ss(expr);
   string var, op, rest;
 
@@ -76,7 +87,12 @@ int Calc::evalExpr(const string &expr, int &result) {
   }
 
   // Deal with no assignment to var
-  return evalOpr(expr, result);
+  int ret = evalOpr(expr, result);
+
+  // Now unlock the mutex
+  pthread_mutex_unlock(&this->lock);
+  
+  return ret;
 }
 
 // Method to evaluate expression with
