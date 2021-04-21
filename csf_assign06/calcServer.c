@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
     // If server socket became ready for reading, that means that
     // a request for a new connection has arrived
-    if (FD_ISSET(listenfd, &rfds)) {
+    if (FD_ISSET(listenfd, &rfds) && !shutdown_volatile) {
       clientfd = Accept(listenfd, NULL, NULL);
 
       // make clientfd nonblocking
@@ -168,24 +168,23 @@ struct Client *create_client_connection(struct Calc *s, int socket) {
 void *worker(void *arg) {
   struct Client *info = arg;
 
-  P(&semaphore);
-  
   pthread_detach(pthread_self());
-  cnt++;
 
+  P(&semaphore);
+  cnt++;
+  
   if(chat_with_client(info->shared_calc,
 		      info->clientfd,
 		      info->clientfd)) {
     shutdown_volatile = 1;
   }
   
-  cnt--;
-  
-  V(&semaphore);
-  
   close(info->clientfd);
   free(info);
 
+  cnt--;
+  V(&semaphore);
+  
   return NULL;
 }
 
