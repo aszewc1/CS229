@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   while (!shutdown_volatile || cnt > 0) {
     fd_set rfds, wfds;
     struct timeval tv;
-    tv.tv_sec = 5;
+    tv.tv_sec = 1;
     tv.tv_usec = 0;
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
