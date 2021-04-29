@@ -18,7 +18,6 @@ private:
   // fields
   map<string, int> vars;
   int size;
-  //sem_t slots, items;
   pthread_mutex_t lock;
   
 public:
@@ -27,7 +26,6 @@ public:
   ~Calc();
 
   int evalExpr(const string &expr, int &result);
-  pthread_mutex_t *getLock() { return &lock; }
 
 private:
   // private member functions
@@ -39,29 +37,18 @@ private:
 };
 
 extern "C" struct Calc *calc_create(void) {
-    return new Calc();
+  return new Calc();
 }
 
 extern "C" void calc_destroy(struct Calc *calc) {
-    delete calc;
+  delete calc;
 }
 
 extern "C" int calc_eval(struct Calc *calc, const char *expr, int *result) {
-  // First lock the mutex
-  pthread_mutex_lock(calc->getLock());
-  
-  int ret = calc->evalExpr(expr, *result);
-
-  // Now unlock the mutex
-  pthread_mutex_unlock(calc->getLock());
-  
-  return ret;
+  return calc->evalExpr(expr, *result);
 }
 
 Calc::Calc() : size(0) {
-  // Initialize semaphore with 5 maximum clients
-  //sem_init(&this->slots, 0, 5);
-  //sem_init(&this->items, 0, 0);
   pthread_mutex_init(&this->lock, NULL);
 }
 
@@ -81,6 +68,11 @@ Calc::~Calc() {
 // Outsource handling of first two
 // expressions to evalOpr
 int Calc::evalExpr(const string &expr, int &result) {
+
+  // First lock the mutex
+  pthread_mutex_lock(&lock);
+
+  int ret = 0;
   stringstream ss(expr);
   string var, op, rest;
 
@@ -92,12 +84,17 @@ int Calc::evalExpr(const string &expr, int &result) {
       && op.length() == 1 && op.at(0) == '=') {
     if (evalOpr(rest, result)) {
       this->vars[var] = result;
+      pthread_mutex_unlock(&lock);
       return 1;
     }
   }
 
   // Deal with no assignment to var
-  return evalOpr(expr, result);  
+  ret = evalOpr(expr, result);
+
+  // Unlock the mutex
+  pthread_mutex_unlock(&lock);
+  return ret;
 }
 
 // Method to evaluate expression with

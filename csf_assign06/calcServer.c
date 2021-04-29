@@ -55,9 +55,6 @@ int main(int argc, char **argv) {
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
 
-    // Determine which file descriptors should be in the read and write sets.
-    // It's counterproductive to put a connection file descriptor in the write
-    // set if it currently wants to read.
     for (int fd = 0; fd <= maxfd; fd++) {
       struct Client *conn = client_conn[fd];
       if (conn) { FD_SET(fd, &rfds); FD_SET(fd, &wfds); }
@@ -78,8 +75,8 @@ int main(int argc, char **argv) {
     if (FD_ISSET(listenfd, &rfds) && !shutdown_volatile) {
       clientfd = Accept(listenfd, NULL, NULL);
 
-      // make clientfd nonblocking
-      //make_nonblocking(clientfd);
+      // make fd nonblocking
+      make_nonblocking(listenfd);
 
       // update maxfd if necessary
       if (clientfd > maxfd) {
